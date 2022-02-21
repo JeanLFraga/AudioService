@@ -6,8 +6,15 @@ namespace JeanLF.AudioService.Filters
     [Serializable]
     public struct DistortionFilterProperties : IFilterProperty
     {
-        [Range(0,1)] [SerializeField] private float _distortionLevel;
+        public static readonly DistortionFilterProperties DefaultValues = new DistortionFilterProperties(0.5f);
         
+        [Range(0,1)] [SerializeField] private float _distortionLevel;
+
+        public DistortionFilterProperties(float distortionLevel = 0.5f)
+        {
+            _distortionLevel = distortionLevel;
+        }
+
         public Type FilterType => typeof(AudioDistortionFilter);
         public float DistortionLevel => _distortionLevel;
     }

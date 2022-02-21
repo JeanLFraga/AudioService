@@ -6,8 +6,16 @@ namespace JeanLF.AudioService.Filters
     [Serializable]
     public struct LowPassFilterProperties : IFilterProperty
     {
-        [SerializeField] private float _cutoffFrequency;
-        [SerializeField] private float _resonanceQ;
+        public static readonly LowPassFilterProperties DefaultValues = new LowPassFilterProperties(5000);
+        
+        [Range(0,22000)] [SerializeField] private float _cutoffFrequency;
+        [Range(1,10)] [SerializeField] private float _resonanceQ;
+
+        public LowPassFilterProperties(float cutoffFrequency = 5000)
+        {
+            _cutoffFrequency = cutoffFrequency;
+            _resonanceQ = 1.0f;
+        }
 
         public float CutoffFrequency => _cutoffFrequency;
         public float ResonanceQ => _resonanceQ;
