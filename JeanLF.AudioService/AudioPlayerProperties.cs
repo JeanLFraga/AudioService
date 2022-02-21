@@ -6,7 +6,7 @@ namespace JeanLF.AudioService
     [Serializable]
     public struct AudioPlayerProperties
     {
-        public static readonly AudioPlayerProperties DefaultValues = new AudioPlayerProperties(1f);
+        public static readonly AudioPlayerProperties DefaultValues = new AudioPlayerProperties(volume:1f);
         
         [SerializeField] private bool _bypassListenerEffects;
         [SerializeField] private bool _loop;
@@ -23,25 +23,20 @@ namespace JeanLF.AudioService
         [SerializeField] private float _minRolloff;
         [SerializeField] private float _maxRolloff;
 
-        public AudioPlayerProperties(float volume = 1f)
-        {
-            _bypassListenerEffects = false;
-            _loop = false;
-            _priority = 128;
-            _volume = volume;
-            _minPitch = 1;
-            _maxPitch = 1;
-            _spatialBlend = 0;
-            _stereoPan = 0;
-            _reverbZoneMix = 1;
-            _dopplerLevel = 1;
-            _spread = 0;
-            _volumeRolloff = AudioRolloffMode.Logarithmic;
-            _minRolloff = 1;
-            _maxRolloff = 500;
-        }
-
-        public AudioPlayerProperties(bool bypassListenerEffects, bool loop, int priority, float volume, float minPitch, float maxPitch, float spatialBlend, float stereoPan, float reverbZoneMix, float dopplerLevel, float spread, AudioRolloffMode volumeRolloff, float minRolloff, float maxRolloff)
+        public AudioPlayerProperties(bool bypassListenerEffects = false,
+            bool loop = false,
+            int priority = 128,
+            float volume = 1f,
+            float minPitch = 1f,
+            float maxPitch = 1f,
+            float spatialBlend = 0,
+            float stereoPan = 0,
+            float reverbZoneMix = 1,
+            float dopplerLevel = 1,
+            float spread = 0,
+            AudioRolloffMode volumeRolloff = AudioRolloffMode.Logarithmic,
+            float minRolloff = 1,
+            float maxRolloff = 500)
         {
             _bypassListenerEffects = bypassListenerEffects;
             _loop = loop;

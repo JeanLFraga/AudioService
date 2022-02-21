@@ -8,17 +8,17 @@ using UnityEngine;
 namespace JeanLF.AudioService
 {
     [System.Serializable]
-    public struct AudioConfiguration
+    public struct AudioEntry
     {
-        public AudioConfiguration(float volume = 1f)
+        public AudioEntry(float volume = 1f)
         {
             _id = string.Empty;
             _clips = Array.Empty<AudioClip>();
-            _audioProperties = new AudioPlayerProperties(1f);
+            _audioProperties = new AudioPlayerProperties(volume:1f);
             _filters = Array.Empty<IFilterProperty>();
         }
 
-        public AudioConfiguration(
+        public AudioEntry(
             string id,
             AudioClip[] audioClips,
             bool bypassListenerEffects,

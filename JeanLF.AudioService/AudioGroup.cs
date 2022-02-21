@@ -1,11 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.Audio;
 
 namespace JeanLF.AudioService
 {
-    public struct SoundGroupConfiguration
+    [Serializable]
+    public struct AudioGroup
     {
         [SerializeField] private string _id;
         [SerializeField] private AudioMixerGroup _mixerGroup;
