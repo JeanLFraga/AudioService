@@ -1,0 +1,18 @@
+{
+    "name": "JeanLF.AudioService.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8d9a4f767c6b63e4daf4e97df4929c03"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
