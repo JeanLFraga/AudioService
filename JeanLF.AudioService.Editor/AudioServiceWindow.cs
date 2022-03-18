@@ -18,7 +18,7 @@ namespace JeanLF.AudioService.Editor
         
         private const string AudioConfigKey = "AudioService_AudioConfig";
         private const string FoldersKey = "AudioService_Folders";
-        private const string ConfigfieldName = "configField";
+        private const string ConfigFieldName = "configField";
         private const string FolderListName = "folderList";
         private static readonly Vector2 _minWindowSize = new Vector2(350f, 300);
         
@@ -60,7 +60,7 @@ namespace JeanLF.AudioService.Editor
         {
             if (_folderList != null)
             {
-                _folderList.OnUpdate -= Save;
+                _folderList.OnDataUpdate -= Save;
             }
         }
 
@@ -75,7 +75,7 @@ namespace JeanLF.AudioService.Editor
             
             root.Add(treeAsset);
             
-            _configField = root.Q<ObjectField>(ConfigfieldName);
+            _configField = root.Q<ObjectField>(ConfigFieldName);
             _configField.RegisterValueChangedCallback(OnConfigSelected);
             _configField.Bind(_audioConfigSerialized);
             _configField.SetValueWithoutNotify(_audioConfig);
@@ -83,7 +83,7 @@ namespace JeanLF.AudioService.Editor
             _folderList = root.Q<ReorderableArray>(FolderListName);
             _folderList.visible = _audioConfig != null;
             _folderList.BindProperty(_foldersProperty);
-            _folderList.OnUpdate += Save;
+            _folderList.OnDataUpdate += Save;
 
             Button _button = new Button(() => Save());
             
@@ -105,7 +105,7 @@ namespace JeanLF.AudioService.Editor
             {
                 _inspectorElement.Bind(_audioConfigSerialized);
             }
-            catch (NullReferenceException) //HACK InspectorElement throws an internal error on recompiling
+            catch (NullReferenceException) //HACK InspectorElement throws an internal error on recompile
             {
                 await Task.Delay(5);
                 _inspectorElement.Bind(_audioConfigSerialized);

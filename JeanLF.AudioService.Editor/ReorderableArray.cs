@@ -10,9 +10,14 @@ namespace JeanLF.AudioService.Editor
 {
     public class ReorderableArray : BindableElement
     {
-        public event Action OnUpdate;
+        public event ReorderableList.AddDropdownCallbackDelegate AddDropdownCallback;
+        public event Action OnDataUpdate;
         
         private SerializedProperty _arrayProperty;
+        private readonly bool _draggable = true;
+        private readonly bool _displayHeader = true;
+        private readonly bool _displayAddButton = true;
+        private readonly bool _displayRemoveButton = true;
         private ReorderableList _reorderable;
         private IMGUIContainer _container;
         private GUIContent _listName;
@@ -27,6 +32,10 @@ namespace JeanLF.AudioService.Editor
             bool displayRemoveButton = true)
         {
             _arrayProperty = arrayProperty;
+            _draggable = draggable;
+            _displayHeader = displayHeader;
+            _displayAddButton = displayAddButton;
+            _displayRemoveButton = displayRemoveButton;
             CreateReorderableList(draggable, displayHeader, displayAddButton, displayRemoveButton);
             _listName = new GUIContent(_arrayProperty.displayName);
             _container = new IMGUIContainer(DrawList);
@@ -55,7 +64,7 @@ namespace JeanLF.AudioService.Editor
             }
             else
             {
-                CreateReorderableList(true,true,true,true);
+                CreateReorderableList(_draggable,_displayHeader,_displayAddButton,_displayRemoveButton);
                 _container.onGUIHandler = DrawList;
                 _listName = new GUIContent(_arrayProperty.displayName);
             }
@@ -68,6 +77,7 @@ namespace JeanLF.AudioService.Editor
             _reorderable.drawElementCallback = DrawElementCallback;
             _reorderable.elementHeightCallback = ElementHeightCallback;
             _reorderable.onChangedCallback = OnChangedCallback;
+            _reorderable.onAddDropdownCallback = AddDropdownCallback;
         }
 
         private void DrawHeaderCallback(Rect rect1)
@@ -77,7 +87,7 @@ namespace JeanLF.AudioService.Editor
 
         private void OnChangedCallback(ReorderableList list)
         {
-            OnUpdate?.Invoke();
+            OnDataUpdate?.Invoke();
         }
 
         private float ElementHeightCallback(int index)
@@ -93,7 +103,7 @@ namespace JeanLF.AudioService.Editor
             if (EditorGUI.EndChangeCheck())
             {
                 _arrayProperty.serializedObject.ApplyModifiedProperties();
-                OnUpdate?.Invoke();
+                OnDataUpdate?.Invoke();
             }
         }
 

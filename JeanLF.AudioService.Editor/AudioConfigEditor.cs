@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JeanLF.AudioService.Editor
 {
-    [CustomEditor(typeof(AudioConfig))]
+    //[CustomEditor(typeof(AudioConfig))]
     public class AudioConfigEditor : UnityEditor.Editor
     {
         

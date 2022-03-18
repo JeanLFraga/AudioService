@@ -10,6 +10,10 @@ namespace JeanLF.AudioService
     [System.Serializable]
     public struct AudioEntry
     {
+#if UNITY_EDITOR
+        public static readonly string FilterPropertyName = nameof(_filters);
+#endif
+        
         public AudioEntry(float volume = 1f)
         {
             _id = string.Empty;
@@ -47,6 +51,17 @@ namespace JeanLF.AudioService
         [SerializeField] private string _id;
         [SerializeField] private AudioClip[] _clips;
         [SerializeField] private AudioPlayerProperties _audioProperties;
-        [SerializeField] private IFilterProperty[] _filters;
+        [HideInInspector] [SerializeReference] private IFilterProperty[] _filters;
+
+        public IFilterProperty[] Filters => _filters;
+
+        [ContextMenu("Debug Filters")]
+        private void DebugFilters()
+        {
+            for (int i = 0; i < _filters.Length; i++)
+            {
+                Debug.Log(_filters[i]);
+            }
+        }
     }
 }
