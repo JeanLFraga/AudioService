@@ -14,6 +14,7 @@ namespace JeanLF.AudioService.Editor
     [CustomPropertyDrawer(typeof(AudioEntry))]
     public class AudioEntryPropertyDrawer : PropertyDrawer
     {
+        private readonly List<Type> _typeList = new List<Type>();
         private Dictionary<string, ReorderableList> _reorderableLists = new Dictionary<string, ReorderableList>();
         private float SingleLineHeight => EditorGUIUtility.singleLineHeight;
         private float VerticalSpacing => EditorGUIUtility.standardVerticalSpacing;
@@ -31,11 +32,7 @@ namespace JeanLF.AudioService.Editor
             if (!_reorderableLists.TryGetValue(property.propertyPath, out _list))
             {
                 _list = new ReorderableList(property.serializedObject,
-                    property.FindPropertyRelative(AudioEntry.FilterPropertyName),
-                    false,
-                    true,
-                    true,
-                    true);
+                    property.FindPropertyRelative(AudioEntry.FilterPropertyName));
                 _list.drawElementCallback = DrawElementCallback;
                 _list.elementHeightCallback = ElementHeightCallback;
                 _list.onAddDropdownCallback = OnAddDropdownCallback;
@@ -118,12 +115,26 @@ namespace JeanLF.AudioService.Editor
         {
             GenericMenu menu = new GenericMenu();
 
-            var types = Assembly.GetAssembly(typeof(IFilterProperty)).GetTypes()
-                .Where(x => x.GetInterface(nameof(IFilterProperty)) != null);
-
-            foreach (var item in types)
+            _typeList.Clear();
+            TypeCache.TypeCollection types = TypeCache.GetTypesDerivedFrom<IFilterProperty>();
+            for (int i = 0; i < reorderable.serializedProperty.arraySize; i++)
             {
-                menu.AddItem(new GUIContent(item.Name), false, onAddClick, item);
+                string fullName = reorderable.serializedProperty.GetArrayElementAtIndex(i).managedReferenceFullTypename;
+                Assembly assembly = Assembly.Load(new AssemblyName(fullName.Remove(fullName.IndexOf(' '))));
+                Type type = assembly.GetType(fullName.Substring(fullName.IndexOf(' ')));
+                _typeList.Add(type);
+            }
+
+            foreach (Type item in types)
+            {
+                if (!_typeList.Contains(item))
+                {
+                    menu.AddItem(new GUIContent(item.Name), false, onAddClick, item);
+                }
+                else
+                {
+                    menu.AddDisabledItem(new GUIContent(item.Name), true);
+                }
             }
 
             void onAddClick(object type)

@@ -1,0 +1,7 @@
+.centralizedFoldout > Toggle > VisualElement {
+    -unity-text-align: upper-center;
+    -unity-font-style: bold;
+    flex-grow: 1;
+    flex-direction: row;
+    justify-content: center;
+}
