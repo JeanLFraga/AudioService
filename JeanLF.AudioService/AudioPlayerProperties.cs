@@ -7,8 +7,8 @@ namespace JeanLF.AudioService
     public struct AudioPlayerProperties
     {
         public static readonly AudioPlayerProperties DefaultValues = new AudioPlayerProperties(volume:1f);
-        
-        [SerializeField] private bool _bypassListenerEffects;
+
+        [SerializeField] private bool _bypassEffects;
         [SerializeField] private bool _loop;
         [Range(0, 256)] [SerializeField] private int _priority;
         [Range(0, 1)] [SerializeField] private float _volume;
@@ -23,7 +23,7 @@ namespace JeanLF.AudioService
         [SerializeField] private float _minRolloff;
         [SerializeField] private float _maxRolloff;
 
-        public AudioPlayerProperties(bool bypassListenerEffects = false,
+        public AudioPlayerProperties(bool bypassEffects = false,
             bool loop = false,
             int priority = 128,
             float volume = 1f,
@@ -38,7 +38,7 @@ namespace JeanLF.AudioService
             float minRolloff = 1,
             float maxRolloff = 500)
         {
-            _bypassListenerEffects = bypassListenerEffects;
+            _bypassEffects = bypassEffects;
             _loop = loop;
             _priority = priority;
             _volume = volume;
@@ -54,7 +54,7 @@ namespace JeanLF.AudioService
             _maxRolloff = maxRolloff;
         }
 
-        public bool BypassListenerEffects => _bypassListenerEffects;
+        public bool BypassEffects => _bypassEffects;
         public bool Loop => _loop;
         public int Priority => _priority;
         public float Volume => _volume;

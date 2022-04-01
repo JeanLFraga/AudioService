@@ -4,27 +4,28 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using JeanLF.AudioService.Filters;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace JeanLF.AudioService
 {
     [System.Serializable]
-    public struct AudioEntry
+    internal struct AudioEntry
     {
 #if UNITY_EDITOR
         public static readonly string FilterPropertyName = nameof(_filters);
 #endif
-        
+
         public AudioEntry(float volume = 1f)
         {
             _id = string.Empty;
-            _clips = Array.Empty<AudioClip>();
+            _clips = Array.Empty<AssetReference>();
             _audioProperties = new AudioPlayerProperties(volume:1f);
             _filters = Array.Empty<IFilterProperty>();
         }
 
         public AudioEntry(
             string id,
-            AudioClip[] audioClips,
+            AssetReference[] audioClips,
             bool bypassListenerEffects,
             bool loop,
             float volume,
@@ -49,12 +50,15 @@ namespace JeanLF.AudioService
         }
 
         [SerializeField] private string _id;
-        [SerializeField] private AudioClip[] _clips;
+        [SerializeField] private AssetReference[] _clips;
         [SerializeField] private AudioPlayerProperties _audioProperties;
         [HideInInspector] [SerializeReference] private IFilterProperty[] _filters;
 
-        public IFilterProperty[] Filters => _filters;
+        public string ID => _id;
+        public AssetReference[] Clips => _clips;
+        public AudioPlayerProperties AudioProperties => _audioProperties;
 
+        //TODO Remove.
         [ContextMenu("Debug Filters")]
         private void DebugFilters()
         {
