@@ -57,6 +57,7 @@ namespace JeanLF.AudioService
         public string ID => _id;
         public AssetReference[] Clips => _clips;
         public AudioPlayerProperties AudioProperties => _audioProperties;
+        public IFilterProperty[] Filters => _filters;
 
         //TODO Remove.
         [ContextMenu("Debug Filters")]

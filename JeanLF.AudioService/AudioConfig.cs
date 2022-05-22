@@ -19,15 +19,32 @@ namespace JeanLF.AudioService
         [SerializeField] private List<AudioEntry> _audioEntries = new List<AudioEntry>();
         [SerializeField] private List<AudioGroup> _audioGroups = new List<AudioGroup>();
 
-        public AudioClip GetAudioClip(string audioId)
+        internal IReadOnlyList<AudioEntry> AudioEntries => _audioEntries;
+        internal IReadOnlyList<AudioGroup> AudioGroups => _audioGroups;
+
+        public AudioClip GetRandomAudioClip(string audioId)
         {
             for (int i = 0; i < _audioEntries.Count; i++)
             {
                 if (audioId == _audioEntries[i].ID)
                 {
-                    return  GetRandomAssetReference(_audioEntries[i]).LoadAssetAsync<AudioClip>().WaitForCompletion();
+                    return GetRandomAssetReference(_audioEntries[i]).LoadAssetAsync<AudioClip>().WaitForCompletion();
                 }
             }
+
+            return null;
+        }
+
+        public AudioClip GetAudioClip(string audioId, int index)
+        {
+            for (int i = 0; i < _audioEntries.Count; i++)
+            {
+                if (audioId == _audioEntries[i].ID)
+                {
+                    return _audioEntries[i].Clips[index].LoadAssetAsync<AudioClip>().WaitForCompletion();
+                }
+            }
+
             return null;
         }
 

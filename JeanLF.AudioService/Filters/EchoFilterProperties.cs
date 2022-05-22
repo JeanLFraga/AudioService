@@ -22,6 +22,16 @@ namespace JeanLF.AudioService.Filters
         }
 
         public Type FilterType => typeof(AudioEchoFilter);
+
+        public void SetupFilter(ref Component component)
+        {
+            AudioEchoFilter filter = (AudioEchoFilter)component;
+            filter.delay = _delay;
+            filter.decayRatio = _decayRatio;
+            filter.wetMix = _wetMix;
+            filter.dryMix = _dryMix;
+        }
+
         public float Delay => _delay;
         public float DecayRatio => _decayRatio;
         public float WetMix => _wetMix;

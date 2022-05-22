@@ -1,5 +1,5 @@
+using JeanLF.AudioService.Filters;
 using JetBrains.Annotations;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -21,11 +21,11 @@ namespace JeanLF.AudioService
             _pool = pool;
         }
 
-        public void PlayAudio(string audioId, AudioClip clip, AudioPlayerProperties properties)
+        public void PlayAudio(string audioId, AudioClip clip, AudioPlayerProperties playerProperties, IFilterProperty[] filterProperties)
         {
             AudioPlayer player = _pool.GetAudioPlayer();
 
-            player.Play(audioId, clip, properties);
+            player.Play(audioId, clip, playerProperties, filterProperties);
 
             _playingAudios.Add(player);
         }
