@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using JeanLF.AudioService.Filters;
 using System;
 using System.Collections;
@@ -12,6 +13,7 @@ namespace JeanLF.AudioService
         private AudioSource _audioSource;
         private Dictionary<Type, Component> _filters;
         public string CurrentId { get; private set; }
+        public bool IsPlaying => _audioSource.isPlaying;
 
         internal void Setup()
         {
@@ -34,7 +36,12 @@ namespace JeanLF.AudioService
             _audioSource.Pause();
         }
 
-        internal void Play(string audioId, AudioClip clip, AudioPlayerProperties playerProperties, IFilterProperty[] filterProperties)
+        public void UnPause()
+        {
+            _audioSource.UnPause();
+        }
+
+        internal async UniTask Play(string audioId, AudioClip clip, AudioPlayerProperties playerProperties, IFilterProperty[] filterProperties)
         {
             CurrentId = audioId;
 
@@ -42,6 +49,8 @@ namespace JeanLF.AudioService
 
             _audioSource.clip = clip;
             _audioSource.Play();
+            await UniTask.WaitWhile(() => IsPlaying);
+
         }
 
         internal void Stop()

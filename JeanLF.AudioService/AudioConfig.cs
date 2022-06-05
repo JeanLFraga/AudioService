@@ -7,12 +7,12 @@ using UnityEngine.Audio;
 namespace JeanLF.AudioService
 {
     [CreateAssetMenu(menuName = "JeanLF Audio Service/Audio Configuration", fileName = "AudioConfig")]
-    public class AudioConfig : ScriptableObject
+    public sealed class AudioConfig : ScriptableObject
     {
 #if UNITY_EDITOR
-        public static readonly string MixerProperty = nameof(_mixer);
-        public static readonly string EntriesProperty = nameof(_audioEntries);
-        public static readonly string GroupProperty = nameof(_audioGroups);
+        internal static readonly string MixerProperty = nameof(_mixer);
+        internal static readonly string EntriesProperty = nameof(_audioEntries);
+        internal static readonly string GroupProperty = nameof(_audioGroups);
 #endif
 
         [SerializeField] private AudioMixer _mixer;

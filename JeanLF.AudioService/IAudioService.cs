@@ -1,10 +1,11 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace JeanLF.AudioService
 {
     public interface IAudioService
     {
-        void Play();
+        UniTask Play(AudioReference audio, AudioPlayerProperties? overrideProperties = null);
         void Pause();
         void PauseGroup();
         void Stop();

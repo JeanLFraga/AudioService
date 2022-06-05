@@ -12,9 +12,10 @@ using UnityEngine.UIElements;
 namespace JeanLF.AudioService.Editor
 {
     [CustomPropertyDrawer(typeof(AudioEntry))]
-    public class AudioEntryPropertyDrawer : PropertyDrawer
+    public sealed class AudioEntryPropertyDrawer : PropertyDrawer
     {
         private readonly List<Type> _typeList = new List<Type>();
+        private readonly GUIStyle _foldoutNoMargin = new GUIStyle(EditorStyles.foldout);
         private Dictionary<string, ReorderableList> _reorderableLists = new Dictionary<string, ReorderableList>();
 
         private float SingleLineHeight => EditorGUIUtility.singleLineHeight;
@@ -23,6 +24,11 @@ namespace JeanLF.AudioService.Editor
 
         private ReorderableList _list;
         private SerializedProperty _targetProperty;
+
+        public AudioEntryPropertyDrawer()
+        {
+            _foldoutNoMargin.margin.left = 0;
+        }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -46,7 +52,7 @@ namespace JeanLF.AudioService.Editor
 
             if (property.isExpanded)
             {
-                using var scope = new EditorGUI.IndentLevelScope();
+                using EditorGUI.IndentLevelScope scope = new EditorGUI.IndentLevelScope();
                 EditorGUI.BeginChangeCheck();
                 listProperty.isExpanded =
                     EditorGUI.Foldout(GetPropertyRect(position), listProperty.isExpanded, "Filters");
@@ -62,8 +68,6 @@ namespace JeanLF.AudioService.Editor
                 {
                     _list.DoList(EditorGUI.IndentedRect(position));
                 }
-
-                scope.Dispose();
             }
 
             EditorGUI.EndProperty();
@@ -97,8 +101,10 @@ namespace JeanLF.AudioService.Editor
             string filterName = prop.managedReferenceFullTypename;
             filterName = filterName.Substring(filterName.LastIndexOf('.') + 1);
             EditorGUI.BeginChangeCheck();
+            //Rect rectMod = EditorGUI.IndentedRect();
+
             prop.isExpanded =
-                EditorGUI.Foldout(GetPropertyRect(rect), prop.isExpanded, ObjectNames.NicifyVariableName(filterName));
+                EditorGUI.Foldout(GetPropertyRect(rect), prop.isExpanded, ObjectNames.NicifyVariableName(filterName), true, _foldoutNoMargin);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -121,8 +127,6 @@ namespace JeanLF.AudioService.Editor
                     rect.y += DefaultControlHeight;
                 }
             }
-
-            scope.Dispose();
         }
 
         private void OnAddDropdownCallback(Rect buttonrect, ReorderableList reorderable)

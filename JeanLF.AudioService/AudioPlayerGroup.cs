@@ -50,7 +50,7 @@ namespace JeanLF.AudioService
         }
 
         [LinqTunnel]
-        public List<AudioPlayer> GetPlayingAudio()
+        public IReadOnlyList<AudioPlayer> GetPlayingAudio()
         {
             return _playingAudios.ToList();
         }

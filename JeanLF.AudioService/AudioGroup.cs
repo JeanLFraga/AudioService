@@ -9,5 +9,8 @@ namespace JeanLF.AudioService
     {
         [SerializeField] private string _id;
         [SerializeField] private AudioMixerGroup _mixerGroup;
+
+        public string ID => _id;
+        public AudioMixerGroup MixerGroup => _mixerGroup;
     }
 }

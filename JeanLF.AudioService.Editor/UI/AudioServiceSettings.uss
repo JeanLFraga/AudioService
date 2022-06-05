@@ -1,0 +1,10 @@
+.settings-container {
+    margin-left: 9px;
+    margin-top: 1px;
+}
+
+.settings-header {
+    font-size: 19px;
+    -unity-font-style: bold;
+    margin-bottom: 12px;
+}

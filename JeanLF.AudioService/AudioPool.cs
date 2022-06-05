@@ -43,15 +43,13 @@ namespace JeanLF.AudioService
                     }
                 }
             }
-
         }
 
         public AudioPlayer GetAudioPlayer()
         {
             if (_pool.Count == 0)
             {
-                Debug.Log("No player in pool");
-                return null;
+                throw new InvalidOperationException("There is no more players in the pool.");
             }
 
             return _pool.Dequeue();
@@ -61,7 +59,7 @@ namespace JeanLF.AudioService
         {
             if (_filterPlayers[id].Count == 0)
             {
-                throw new IndexOutOfRangeException("There is no more players in the pool.");
+                throw new InvalidOperationException("There is no more players in the Filters pool.");
             }
 
             return _filterPlayers[id].Dequeue();
