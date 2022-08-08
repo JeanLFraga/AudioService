@@ -16,38 +16,23 @@ namespace JeanLF.AudioService.Editor
 {
     public class AudioServiceWindow : EditorWindow
     {
-        [Serializable]
-        private struct SavableList
-        {
-            public List<string> list;
-        }
-
         private const string AudioConfigKey = "AudioService_AudioConfig";
-        private const string FoldersKey = "AudioService_Folders";
         private const string ConfigFieldName = "configField";
-        private const string FolderListName = "folderList";
-        private static readonly Vector2 _minWindowSize = new Vector2(350f, 300);
+        private static readonly Vector2 MinWindowSize = new Vector2(350f, 300);
         private readonly Regex _enumMemberRegex = new Regex("(\b[0-9]+)|([^a-zA-Z0-9])");
         private readonly TextInfo _textInfo = new CultureInfo("en-US").TextInfo;
 
         [SerializeField]
         private AudioConfig _audioConfig;
-        [SerializeField]
-        private DefaultAsset[] _folders;
 
-        private SerializedObject _windowSerialized;
-        private SerializedProperty _foldersProperty;
         private SerializedObject _audioConfigSerialized;
-        private ObjectField _configField;
-        private ReorderableArray _folderList;
         private InspectorElement _inspectorElement;
-        private ToolbarSearchField _entrySearchField;
 
         [MenuItem("Tools/JeanLF/AudioServiceWindow")]
         public static void OpenWindow()
         {
             AudioServiceWindow wnd = GetWindow<AudioServiceWindow>("Audio Service Window");
-            wnd.minSize = _minWindowSize;
+            wnd.minSize = MinWindowSize;
             wnd.Show();
         }
 
@@ -61,18 +46,7 @@ namespace JeanLF.AudioService.Editor
         private void OnEnable()
         {
             _inspectorElement = new InspectorElement();
-            _windowSerialized = new SerializedObject(this);
-            _foldersProperty = _windowSerialized.FindProperty(nameof(_folders));
             Load();
-            _windowSerialized.Update();
-        }
-
-        private void OnDisable()
-        {
-            if (_folderList != null)
-            {
-                _folderList.OnDataUpdate -= Save;
-            }
         }
 
         public void CreateGUI()
@@ -86,19 +60,12 @@ namespace JeanLF.AudioService.Editor
 
             root.Add(treeAsset);
 
-            _configField = root.Q<ObjectField>(ConfigFieldName);
-            _configField.RegisterValueChangedCallback(OnConfigSelected);
-            _configField.Bind(_audioConfigSerialized);
-            _configField.SetValueWithoutNotify(_audioConfig);
-
-            _folderList = root.Q<ReorderableArray>(FolderListName);
-            _folderList.visible = _audioConfig != null;
-            _folderList.BindProperty(_foldersProperty);
-            _folderList.OnDataUpdate += Save;
+            ObjectField configField = root.Q<ObjectField>(ConfigFieldName);
+            configField.RegisterValueChangedCallback(OnConfigSelected);
+            configField.Bind(_audioConfigSerialized);
+            configField.SetValueWithoutNotify(_audioConfig);
 
             root.Q<Button>("generateButton").clicked += GenerateEnums;// += Save;
-
-            _entrySearchField = root.Q<ToolbarSearchField>("entrySearch");
 
             ReorderableArray entries = root.Q<ReorderableArray>("entries");
             entries.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.EntriesPropertyPath));
@@ -157,38 +124,12 @@ namespace JeanLF.AudioService.Editor
                 await Task.Delay(5);
                 _inspectorElement.Bind(_audioConfigSerialized);
             }
-
-            string json = EditorPrefs.GetString($"{configGuid}-{FoldersKey}", "");
-
-            if (!string.IsNullOrEmpty(json))
-            {
-                SavableList saveList = JsonUtility.FromJson<SavableList>(json);
-                _folders = new DefaultAsset[saveList.list.Count];
-
-                for (int i = 0; i < saveList.list.Count; i++)
-                {
-                    _folders[i] = AssetDatabase.LoadAssetAtPath<DefaultAsset>(AssetDatabase.GUIDToAssetPath(saveList.list[i]));
-                }
-            }
         }
 
         private void Save()
         {
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(_audioConfigSerialized.targetObject, out string configGuid, out long _);
-
-            SavableList saveList = new SavableList();
-
-            saveList.list = new List<string>();
-
-            foreach (DefaultAsset item in _folders)
-            {
-                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(item, out string guid, out long _);
-                saveList.list.Add(guid);
-            }
-
-            string json = JsonUtility.ToJson(saveList,true);
             EditorPrefs.SetString(AudioConfigKey, configGuid);
-            EditorPrefs.SetString($"{AudioServiceEditorUtils.PackageName}-{configGuid}-{FoldersKey}", json);
             //TODO change to user settings.
         }
 
@@ -202,7 +143,6 @@ namespace JeanLF.AudioService.Editor
                 _audioConfigSerialized = null;
             }
 
-            _folders = Array.Empty<DefaultAsset>();
             EditorPrefs.DeleteKey(AudioConfigKey);
         }
 
@@ -225,9 +165,7 @@ namespace JeanLF.AudioService.Editor
 
         private void RefreshWindow()
         {
-            bool hasConfig = _audioConfig != null;
-            _inspectorElement.visible = hasConfig;
-            _folderList.style.display = new StyleEnum<DisplayStyle>(hasConfig ? DisplayStyle.Flex : DisplayStyle.None);
+            _inspectorElement.visible = _audioConfig != null;
             _inspectorElement.Unbind();
             _inspectorElement.Bind(_audioConfigSerialized);
         }
