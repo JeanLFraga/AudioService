@@ -7,11 +7,12 @@ using UnityEngine.Audio;
 
 namespace JeanLF.AudioService
 {
-    public sealed class AudioService : IAudioService
+    public sealed partial class AudioService : IAudioService
     {
         private readonly AudioConfig _configuration;
         private readonly AudioPool _pool;
         private readonly HashSet<AudioPlayerGroup> _audioGroups = new HashSet<AudioPlayerGroup>();
+        private readonly Stack<AudioMixerSnapshot> _snapshotsStack = new Stack<AudioMixerSnapshot>();
 
         private void Test()
         {
@@ -25,6 +26,12 @@ namespace JeanLF.AudioService
         {
             AudioServiceSettings settings = Resources.Load<AudioServiceSettings>("JeanLF_AS_Settings.asset");
             _configuration = settings.Configuration;
+
+            if (_configuration == null)
+            {
+                throw new NullReferenceException(@"Audio Service configuration can't be null.\n
+                You can set the configuration on the service settings in <b>Project Settings/JeanLF/Audio Service</b>");
+            }
 
             _pool = new AudioPool(_configuration, settings.PoolSize, settings.FilteredSources);
             IReadOnlyList<AudioGroup> groups = _configuration.AudioGroups;

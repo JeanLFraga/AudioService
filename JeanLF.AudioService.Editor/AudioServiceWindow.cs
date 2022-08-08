@@ -1,10 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.Windows;
 
 namespace JeanLF.AudioService.Editor
 {
@@ -21,6 +27,8 @@ namespace JeanLF.AudioService.Editor
         private const string ConfigFieldName = "configField";
         private const string FolderListName = "folderList";
         private static readonly Vector2 _minWindowSize = new Vector2(350f, 300);
+        private readonly Regex _enumMemberRegex = new Regex("(\b[0-9]+)|([^a-zA-Z0-9])");
+        private readonly TextInfo _textInfo = new CultureInfo("en-US").TextInfo;
 
         [SerializeField]
         private AudioConfig _audioConfig;
@@ -33,6 +41,7 @@ namespace JeanLF.AudioService.Editor
         private ObjectField _configField;
         private ReorderableArray _folderList;
         private InspectorElement _inspectorElement;
+        private ToolbarSearchField _entrySearchField;
 
         [MenuItem("Tools/JeanLF/AudioServiceWindow")]
         public static void OpenWindow()
@@ -87,8 +96,44 @@ namespace JeanLF.AudioService.Editor
             _folderList.BindProperty(_foldersProperty);
             _folderList.OnDataUpdate += Save;
 
-            root.Q<Button>("generate").clicked += Save;
-            root.Q<ScrollView>("scroll").Add(_inspectorElement);
+            root.Q<Button>("generateButton").clicked += GenerateEnums;// += Save;
+
+            _entrySearchField = root.Q<ToolbarSearchField>("entrySearch");
+
+            ReorderableArray entries = root.Q<ReorderableArray>("entries");
+            entries.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.EntriesPropertyPath));
+            entries.OnDataUpdate += OnEntriesUpdate;
+
+            ReorderableArray groups = root.Q<ReorderableArray>("groups");
+            groups.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.GroupPropertyPath));
+            groups.OnDataUpdate += OnGroupsUpdate;
+        }
+
+        private void CleanupIdStrings(string arrayPath, string stringPath)
+        {
+            SerializedProperty arrayProp = _audioConfigSerialized.FindProperty(arrayPath);
+
+            for (int i = 0; i < arrayProp.arraySize; i++)
+            {
+                SerializedProperty idProp = arrayProp.GetArrayElementAtIndex(i).FindPropertyRelative(stringPath);
+                idProp.stringValue = _enumMemberRegex.Replace(CapitalizeFirstLetter(idProp.stringValue), "");
+            }
+
+            arrayProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private void OnGroupsUpdate()
+        {
+            CleanupIdStrings(AudioConfig.GroupPropertyPath, AudioGroup.IdPropertyPath);
+
+            GenerateEnums();
+        }
+
+        private void OnEntriesUpdate()
+        {
+            CleanupIdStrings(AudioConfig.EntriesPropertyPath, AudioEntry.IdPropertyPath);
+
+            GenerateEnums();
         }
 
         private async void Load()
@@ -130,7 +175,6 @@ namespace JeanLF.AudioService.Editor
         private void Save()
         {
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(_audioConfigSerialized.targetObject, out string configGuid, out long _);
-            EditorPrefs.SetString(AudioConfigKey, configGuid);
 
             SavableList saveList = new SavableList();
 
@@ -142,8 +186,10 @@ namespace JeanLF.AudioService.Editor
                 saveList.list.Add(guid);
             }
 
-            string json = JsonUtility.ToJson(saveList);
-            EditorPrefs.SetString($"{configGuid}-{FoldersKey}", json);
+            string json = JsonUtility.ToJson(saveList,true);
+            EditorPrefs.SetString(AudioConfigKey, configGuid);
+            EditorPrefs.SetString($"{AudioServiceEditorUtils.PackageName}-{configGuid}-{FoldersKey}", json);
+            //TODO change to user settings.
         }
 
         private void ClearSave()
@@ -184,6 +230,60 @@ namespace JeanLF.AudioService.Editor
             _folderList.style.display = new StyleEnum<DisplayStyle>(hasConfig ? DisplayStyle.Flex : DisplayStyle.None);
             _inspectorElement.Unbind();
             _inspectorElement.Bind(_audioConfigSerialized);
+        }
+
+        private string CodifyString(string text)
+        {
+            return _enumMemberRegex.Replace(_textInfo.ToTitleCase(text), "");
+        }
+
+        private void GenerateEnums()
+        {
+            List<string> RemoveDuplicates(IEnumerable<string> items)
+            {
+                HashSet<string> hashSet = new HashSet<string>(items);
+                List<string> list = hashSet.ToList();
+                list.Insert(0,"Invalid");
+
+                return list;
+            }
+
+            StreamWriter file = new StreamWriter(AudioServiceEditorUtils.EntriesFilePath,false);
+            SourceFile source = WriteEnum(nameof(EntryId), RemoveDuplicates(_audioConfig.AudioEntries.Select(x => x.ID)));
+            file.Write(source.ToString());
+            file.Close();
+
+            file = new StreamWriter(AudioServiceEditorUtils.GroupFilePath, false);
+            source = WriteEnum(nameof(GroupId), RemoveDuplicates(_audioConfig.AudioGroups.Select(x => x.ID)));
+            file.Write(source.ToString());
+            file.Close();
+
+            AssetDatabase.Refresh();
+        }
+
+        private SourceFile WriteEnum(string enumName, IEnumerable<string> members)
+        {
+            SourceFile sourceFile = new SourceFile();
+            using (new NamespaceScope(sourceFile, AudioServiceEditorUtils.AudioServiceNamespace))
+            {
+                sourceFile.AppendLine($"public enum {enumName}");
+
+                using (new BracesScope(sourceFile))
+                {
+                    foreach (string member in members)
+                    {
+                        sourceFile.AppendLine($"{member},");
+                    }
+                }
+            }
+
+            return sourceFile;
+        }
+
+        private static string CapitalizeFirstLetter(string text)
+        {
+            string original = text;
+            return text.Substring(1).Insert(0, char.ToUpper(original[0]).ToString());
         }
     }
 }

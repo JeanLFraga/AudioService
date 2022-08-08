@@ -1,5 +1,6 @@
 using System;
 using Codice.Client.Common;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEditorInternal;
@@ -10,19 +11,43 @@ namespace JeanLF.AudioService.Editor
 {
     public class ReorderableArray : BindableElement
     {
+        public delegate bool SearchDelegate(SerializedProperty property);
         public event ReorderableList.AddDropdownCallbackDelegate AddDropdownCallback;
         public event Action OnDataUpdate;
-        
+
         private SerializedProperty _arrayProperty;
-        private readonly bool _draggable = true;
-        private readonly bool _displayHeader = true;
-        private readonly bool _displayAddButton = true;
-        private readonly bool _displayRemoveButton = true;
+        private bool _draggable = true;
+        private bool _displayHeader = true;
+        private bool _displayAddButton = true;
+        private bool _displayRemoveButton = true;
         private ReorderableList _reorderable;
         private IMGUIContainer _container;
         private GUIContent _listName;
-        
-        public new class UxmlFactory : UxmlFactory<ReorderableArray, BindableElement.UxmlTraits> { }
+        private SearchDelegate _matchingFunction;
+
+        public new class UxmlFactory : UxmlFactory<ReorderableArray, UxmlTraits> { }
+
+        public new class UxmlTraits : BindableElement.UxmlTraits
+        {
+            private UxmlBoolAttributeDescription _draggable = new UxmlBoolAttributeDescription { name = "draggable", defaultValue = true };
+            private UxmlBoolAttributeDescription _displayHeader = new UxmlBoolAttributeDescription { name = "header", defaultValue = true };
+            private UxmlBoolAttributeDescription _displayAddButton = new UxmlBoolAttributeDescription { name = "add-button", defaultValue = true };
+            private UxmlBoolAttributeDescription _displayRemoveButton = new UxmlBoolAttributeDescription { name = "removebutton", defaultValue = true };
+
+            public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
+            {
+                get { yield break; }
+            }
+
+            public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
+            {
+                base.Init(ve, bag, cc);
+                ((ReorderableArray)ve)._draggable = _draggable.GetValueFromBag(bag, cc);
+                ((ReorderableArray)ve)._displayHeader = _displayHeader.GetValueFromBag(bag, cc);
+                ((ReorderableArray)ve)._displayAddButton = _displayAddButton.GetValueFromBag(bag, cc);
+                ((ReorderableArray)ve)._displayRemoveButton = _displayRemoveButton.GetValueFromBag(bag, cc);
+            }
+        }
 
         public ReorderableArray(
             SerializedProperty arrayProperty,
@@ -97,13 +122,19 @@ namespace JeanLF.AudioService.Editor
 
         private void DrawElementCallback(Rect rect, int index, bool isActive, bool isFocused)
         {
-            rect.height = EditorGUI.GetPropertyHeight(_arrayProperty.GetArrayElementAtIndex(index));
+            SerializedProperty indexProp = _arrayProperty.GetArrayElementAtIndex(index);
+
+            rect.height = EditorGUI.GetPropertyHeight(indexProp);
+            bool lastState = indexProp.isExpanded;
             EditorGUI.BeginChangeCheck();
-            EditorGUI.PropertyField(rect, _arrayProperty.GetArrayElementAtIndex(index));
+            EditorGUI.PropertyField(rect, indexProp,true);
             if (EditorGUI.EndChangeCheck())
             {
-                _arrayProperty.serializedObject.ApplyModifiedProperties();
-                OnDataUpdate?.Invoke();
+                if (lastState == indexProp.isExpanded) //HACK: Avoid the foldout event to trigger a data change event.
+                {
+                    _arrayProperty.serializedObject.ApplyModifiedProperties();
+                    OnDataUpdate?.Invoke();
+                }
             }
         }
 
@@ -111,7 +142,5 @@ namespace JeanLF.AudioService.Editor
         {
             _reorderable.DoLayoutList();
         }
-
-        
     }
 }

@@ -3,9 +3,18 @@
     <uie:ObjectField label="Audio Configuration" name="configField" type="JeanLF.AudioService.AudioConfig, JeanLF.AudioService" view-data-key="audioConfigKey" />
     <ui:VisualElement name="box" class="unity-box" style="padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0; border-left-color: rgb(34, 34, 34); border-right-color: rgb(34, 34, 34); border-top-color: rgb(34, 34, 34); border-bottom-color: rgb(34, 34, 34); border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px;">
         <ui:Foldout text=" Addressables Configuration" view-data-key="audioService-address-foldout" class="centralizedFoldout">
+            <ui:Button text="Create Addressables" display-tooltip-when-elided="true" name="createButton" />
             <JeanLF.AudioService.Editor.ReorderableArray name="folderList" style="flex-shrink: 0;" />
         </ui:Foldout>
-        <ui:Button text="Generate" display-tooltip-when-elided="true" name="generate" />
     </ui:VisualElement>
-    <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="scroll" />
+    <ui:Button text="Save Configuration" display-tooltip-when-elided="true" name="generateButton" style="display: none;" />
+    <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="scroll">
+        <ui:Foldout text="Audio Entries">
+            <JeanLF.AudioService.Editor.ReorderableArray name="entries" draggable="true" header="false" add-button="true" removebutton="true" />
+        </ui:Foldout>
+        <ui:Foldout text="Mixer Configuration">
+            <uie:PropertyField name="mixer" label="Mixer" />
+            <JeanLF.AudioService.Editor.ReorderableArray name="groups" header="false" draggable="true" add-button="true" removebutton="true" />
+        </ui:Foldout>
+    </ui:ScrollView>
 </ui:UXML>

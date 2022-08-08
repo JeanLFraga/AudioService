@@ -12,24 +12,10 @@ namespace JeanLF.AudioService
     {
         private AudioSource _audioSource;
         private Dictionary<Type, Component> _filters;
-        public string CurrentId { get; private set; }
-        public bool IsPlaying => _audioSource.isPlaying;
+        public EntryId CurrentId { get; private set; }
+        public bool IsPlaying { get; private set; }
 
-        internal void Setup()
-        {
-            _audioSource = GetComponent<AudioSource>();
-        }
-
-        internal void Setup(IFilterProperty[] filters)
-        {
-            _filters = new Dictionary<Type, Component>();
-            for (int i = 0; i < filters.Length; i++)
-            {
-                Component filterComponent = gameObject.AddComponent(filters[i].FilterType);
-                filters[i].SetupFilter(ref filterComponent);
-                _filters.Add(filters[i].FilterType, filterComponent);
-            }
-        }
+        private Transform _cachedTransform;
 
         public void Pause()
         {
@@ -41,21 +27,41 @@ namespace JeanLF.AudioService
             _audioSource.UnPause();
         }
 
-        internal async UniTask Play(string audioId, AudioClip clip, AudioPlayerProperties playerProperties, IFilterProperty[] filterProperties)
+        internal void Setup()
+        {
+            _audioSource = GetComponent<AudioSource>();
+            _cachedTransform = transform;
+        }
+
+        internal void Setup(IFilterProperty[] filters)
+        {
+            Setup();
+            _filters = new Dictionary<Type, Component>();
+            for (int i = 0; i < filters.Length; i++)
+            {
+                Component filterComponent = gameObject.AddComponent(filters[i].FilterType);
+                filters[i].SetupFilter(ref filterComponent);
+                _filters.Add(filters[i].FilterType, filterComponent);
+            }
+        }
+
+        internal async UniTask Play(EntryId audioId, AudioClip clip, AudioPlayerProperties playerProperties, IFilterProperty[] filterProperties)
         {
             CurrentId = audioId;
 
             SetAudioProperties(playerProperties);
 
+            IsPlaying = true;
             _audioSource.clip = clip;
             _audioSource.Play();
             await UniTask.WaitWhile(() => IsPlaying);
-
+            IsPlaying = false;
         }
 
         internal void Stop()
         {
             _audioSource.Stop();
+            IsPlaying = false;
         }
 
         private void SetAudioProperties(AudioPlayerProperties properties)

@@ -7,6 +7,10 @@ namespace JeanLF.AudioService
     [Serializable]
     internal struct AudioGroup
     {
+        #if UNITY_EDITOR
+        internal static readonly string IdPropertyPath = nameof(_id);
+        #endif
+
         [SerializeField] private string _id;
         [SerializeField] private AudioMixerGroup _mixerGroup;
 

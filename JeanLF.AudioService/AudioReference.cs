@@ -1,59 +1,75 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace JeanLF.AudioService
 {
     [System.Serializable]
-    public struct AudioReference
+    public struct AudioReference : ISerializationCallbackReceiver
     {
 #if UNITY_EDITOR
         internal const string EntryMemberPath = nameof(_entryId);
         internal const string GroupMemberPath = nameof(_groupId);
 #endif
 
-        [SerializeField]
-        private string _entryId;
-        [SerializeField]
-        private string _groupId;
 
-        public string EntryId => _entryId;
+        [SerializeField] private EntryId _entryId;
+        [SerializeField] private string _entryString;
 
-        public string GroupId => _groupId;
+        [SerializeField] private GroupId _groupId;
+        [SerializeField] private string _groupString;
 
-        public AudioReference(string entryId, string groupId)
+
+        public EntryId EntryId => _entryId;
+
+        public GroupId GroupId => _groupId;
+
+        public AudioReference(EntryId entryId, GroupId groupId)
         {
             _entryId = entryId;
             _groupId = groupId;
+            _entryString = null;
+            _groupString = null;
         }
 
-        public bool Equals(string entryId, string groupId)
+        public void OnBeforeSerialize()
         {
-            return _entryId == entryId && _groupId == groupId;
-        }
-
-        public bool Equals(AudioReference other)
-        {
-            return _entryId == other._entryId
-                && _groupId == other._groupId;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is AudioReference other && Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
+            _entryString = _entryId.ToString();
+            if (_entryId == EntryId.Invalid)
             {
-                return ((_entryId != null ? _entryId.GetHashCode() : 0) * 397) ^ (_groupId != null ? _groupId.GetHashCode() : 0);
+                _entryString = null;
+            }
+
+            _groupString = _groupId.ToString();
+            if (_groupId == GroupId.Invalid)
+            {
+                _groupString = null;
             }
         }
 
-        public override string ToString() {
-            return $"{_entryId}";
+        public void OnAfterDeserialize()
+        {
+            if (!string.IsNullOrWhiteSpace(_entryString))
+            {
+                if (!EntryId.TryParse(_entryString, out _entryId))
+                {
+                    _entryId = EntryId.Invalid;
+                }
+            }
+            else
+            {
+                _entryId = EntryId.Invalid;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_groupString))
+            {
+                if (!GroupId.TryParse(_groupString, out _entryId))
+                {
+                    _groupId = GroupId.Invalid;
+                }
+            }
+            else
+            {
+                _groupId = GroupId.Invalid;
+            }
         }
     }
 }

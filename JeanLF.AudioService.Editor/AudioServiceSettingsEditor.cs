@@ -40,14 +40,9 @@ namespace JeanLF.AudioService.Editor
             return settings;
         }
 
-        internal static SerializedObject GetSerializedSettings()
-        {
-            return new SerializedObject(GetOrCreateSettings());
-        }
-
         private static void DrawSettings(string searchContext, VisualElement rootElement)
         {
-            SerializedObject settings = GetSerializedSettings();
+            SerializedObject settings = new SerializedObject(GetOrCreateSettings());
             StyleSheet styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/AudioService/JeanLF.AudioService.Editor/UI/AudioServiceSettings.uss");
             rootElement.styleSheets.Add(styleSheet);
             VisualElement container = new VisualElement()
@@ -70,6 +65,7 @@ namespace JeanLF.AudioService.Editor
             container.Add(title);
 
             container.Add(CreatePropertyField(settings, AudioServiceSettings.ConfigMemberPath, "Audio Configuration Asset"));
+            container.Add(CreatePropertyField(settings, AudioServiceSettings.SaveFolderMemberPath));
             container.Add(CreatePropertyField(settings, AudioServiceSettings.PoolSizeMemberPath));
             container.Add(CreatePropertyField(settings, AudioServiceSettings.FilterCountMemberPath));
         }

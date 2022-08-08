@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <ui:Label text="Testa" display-tooltip-when-elided="true" />
+    <ui:IMGUIContainer name="DefaultInspector" />
+    <JeanLF.AudioService.Editor.ReorderableArray name="FilterArray" />
+</ui:UXML>

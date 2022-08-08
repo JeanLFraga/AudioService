@@ -12,6 +12,7 @@ namespace JeanLF.AudioService
     internal struct AudioEntry
     {
 #if UNITY_EDITOR
+        public static readonly string IdPropertyPath = nameof(_id);
         public static readonly string FilterPropertyName = nameof(_filters);
 #endif
 
@@ -49,7 +50,7 @@ namespace JeanLF.AudioService
             _filters = Array.Empty<IFilterProperty>();
         }
 
-        [SerializeField] private string _id;
+        [Delayed] [SerializeField] private string _id;
         [SerializeField] private AssetReference[] _clips;
         [SerializeField] private AudioPlayerProperties _audioProperties;
         [HideInInspector] [SerializeReference] private IFilterProperty[] _filters;

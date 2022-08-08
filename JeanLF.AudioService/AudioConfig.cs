@@ -11,8 +11,8 @@ namespace JeanLF.AudioService
     {
 #if UNITY_EDITOR
         internal static readonly string MixerProperty = nameof(_mixer);
-        internal static readonly string EntriesProperty = nameof(_audioEntries);
-        internal static readonly string GroupProperty = nameof(_audioGroups);
+        internal static readonly string EntriesPropertyPath = nameof(_audioEntries);
+        internal static readonly string GroupPropertyPath = nameof(_audioGroups);
 #endif
 
         [SerializeField] private AudioMixer _mixer;

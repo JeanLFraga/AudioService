@@ -48,14 +48,14 @@ namespace JeanLF.AudioService.Editor
                 _reorderableLists.Add(property.propertyPath, _list);
             }
 
-            var listProperty = property.FindPropertyRelative(AudioEntry.FilterPropertyName);
+            SerializedProperty listProperty = property.FindPropertyRelative(AudioEntry.FilterPropertyName);
 
             if (property.isExpanded)
             {
                 using EditorGUI.IndentLevelScope scope = new EditorGUI.IndentLevelScope();
                 EditorGUI.BeginChangeCheck();
                 listProperty.isExpanded =
-                    EditorGUI.Foldout(GetPropertyRect(position), listProperty.isExpanded, "Filters");
+                    EditorGUI.Foldout(GetPropertyRect(position), listProperty.isExpanded, "Filters",true);
 
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -75,7 +75,6 @@ namespace JeanLF.AudioService.Editor
 
         private float ElementHeightCallback(int index)
         {
-            _list.serializedProperty.serializedObject.Update();
             SerializedProperty prop = _list.serializedProperty.GetArrayElementAtIndex(index);
             float foldout = DefaultControlHeight;
             float controls = 0;
@@ -101,7 +100,6 @@ namespace JeanLF.AudioService.Editor
             string filterName = prop.managedReferenceFullTypename;
             filterName = filterName.Substring(filterName.LastIndexOf('.') + 1);
             EditorGUI.BeginChangeCheck();
-            //Rect rectMod = EditorGUI.IndentedRect();
 
             prop.isExpanded =
                 EditorGUI.Foldout(GetPropertyRect(rect), prop.isExpanded, ObjectNames.NicifyVariableName(filterName), true, _foldoutNoMargin);
@@ -129,7 +127,7 @@ namespace JeanLF.AudioService.Editor
             }
         }
 
-        private void OnAddDropdownCallback(Rect buttonrect, ReorderableList reorderable)
+        private void OnAddDropdownCallback(Rect buttonRect, ReorderableList reorderable)
         {
             GenericMenu menu = new GenericMenu();
 
