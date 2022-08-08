@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="AudioServiceSettings.uss" />
+    <ui:VisualElement class="settings-container">
+        <ui:Label text="Audio Service" display-tooltip-when-elided="true" class="settings-header" />
+        <ui:VisualElement style="flex-direction: row;">
+            <uie:ObjectField label="Audio Configuration" type="JeanLF.AudioService.AudioConfig, JeanLF.AudioService" allow-scene-objects="false" tooltip="The configuration used in the service." name="configObject" class="settings-control" style="flex-shrink: 1; flex-grow: 1;" />
+            <ui:Button display-tooltip-when-elided="true" name="createButton" style="width: 20px;">
+                <ui:VisualElement style="flex-direction: column; height: 16px; background-image: url(&apos;/Packages/com.jeanlf.audioservice/JeanLF.AudioService.Editor/UI/Icons/d_Toolbar Plus@2x.png&apos;); -unity-background-scale-mode: scale-to-fit; flex-grow: 1; width: 12px; left: -3px;" />
+            </ui:Button>
+            <ui:Button display-tooltip-when-elided="true" name="editButton" class="settings-button" style="width: 20px; background-image: none;">
+                <ui:VisualElement style="flex-direction: column; height: 16px; background-image: url(&apos;/Packages/com.jeanlf.audioservice/JeanLF.AudioService.Editor/UI/Icons/d_CustomTool@2x.png&apos;); -unity-background-scale-mode: scale-to-fit; flex-grow: 1; width: 14px; left: -4px;" />
+            </ui:Button>
+        </ui:VisualElement>
+        <uie:PropertyField name="poolSize" tooltip="The count of AudioSources for simultaneous uses of non-containing filter AudioEntry" />
+        <uie:PropertyField name="filtersPoolSize" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
+    </ui:VisualElement>
+</ui:UXML>

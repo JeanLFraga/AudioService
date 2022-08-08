@@ -25,6 +25,7 @@ namespace JeanLF.AudioService.Editor
         private GUIContent _listName;
         private SearchDelegate _matchingFunction;
 
+        private bool _shouldDraw = true;
         public new class UxmlFactory : UxmlFactory<ReorderableArray, UxmlTraits> { }
 
         public new class UxmlTraits : BindableElement.UxmlTraits
@@ -83,6 +84,13 @@ namespace JeanLF.AudioService.Editor
             }
 
             _arrayProperty = type.GetProperty("bindProperty").GetValue(evt) as SerializedProperty ;
+
+            if (_arrayProperty == null)
+            {
+                _shouldDraw = false;
+
+                return;
+            }
             if (_reorderable != null)
             {
                 _reorderable.serializedProperty = _arrayProperty;
@@ -93,6 +101,8 @@ namespace JeanLF.AudioService.Editor
                 _container.onGUIHandler = DrawList;
                 _listName = new GUIContent(_arrayProperty.displayName);
             }
+
+            _shouldDraw = true;
         }
 
         private void CreateReorderableList(bool draggable, bool displayHeader, bool displayAddButton, bool displayRemoveButton)
@@ -140,6 +150,10 @@ namespace JeanLF.AudioService.Editor
 
         private void DrawList()
         {
+            if (!_shouldDraw)
+            {
+                return;
+            }
             _reorderable.DoLayoutList();
         }
     }

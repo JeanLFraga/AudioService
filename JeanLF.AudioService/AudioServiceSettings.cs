@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JeanLF.AudioService
 {
-    public partial class AudioServiceSettings : ScriptableObject
+    public class AudioServiceSettings : ScriptableObject
     {
 
 #if UNITY_EDITOR
@@ -12,12 +12,11 @@ namespace JeanLF.AudioService
         internal const string PoolSizeMemberPath = nameof(_poolSize);
         internal const string FilterCountMemberPath = nameof(_filteredSources);
 #endif
-
-        [SerializeField][Tooltip("The configuration used in the service.")]
+        [SerializeField]
         private AudioConfig _config;
-        [SerializeField][Tooltip("The count of AudioSources for simultaneous uses of non-containing filter AudioEntry")]
+        [SerializeField]
         private int _poolSize;
-        [SerializeField][Tooltip("The count of AudioSources for a single AudioEntry containing filters.")]
+        [SerializeField]
         private int _filteredSources;
 
         internal bool HasConfiguration => _config != null;

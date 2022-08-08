@@ -8,3 +8,15 @@
     -unity-font-style: bold;
     margin-bottom: 12px;
 }
+
+.settings-control > Label {
+    min-width: 150px;
+}
+
+.settings-button.unity-button {
+    -unity-slice-left: 0;
+    -unity-slice-top: 0;
+    -unity-slice-right: 0;
+    -unity-slice-bottom: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}

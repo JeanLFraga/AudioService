@@ -11,7 +11,7 @@ namespace JeanLF.AudioService
         internal static readonly string IdPropertyPath = nameof(_id);
         #endif
 
-        [SerializeField] private string _id;
+        [Delayed][SerializeField] private string _id;
         [SerializeField] private AudioMixerGroup _mixerGroup;
 
         public string ID => _id;

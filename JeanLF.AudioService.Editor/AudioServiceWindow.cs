@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Unity.Plastic.Newtonsoft.Json;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -16,24 +17,21 @@ namespace JeanLF.AudioService.Editor
 {
     public class AudioServiceWindow : EditorWindow
     {
-        private const string AudioConfigKey = "AudioService_AudioConfig";
-        private const string ConfigFieldName = "configField";
         private static readonly Vector2 MinWindowSize = new Vector2(350f, 300);
         private readonly Regex _enumMemberRegex = new Regex("(\b[0-9]+)|([^a-zA-Z0-9])");
-        private readonly TextInfo _textInfo = new CultureInfo("en-US").TextInfo;
 
-        [SerializeField]
         private AudioConfig _audioConfig;
-
         private SerializedObject _audioConfigSerialized;
-        private InspectorElement _inspectorElement;
 
-        [MenuItem("Tools/JeanLF/AudioServiceWindow")]
-        public static void OpenWindow()
+        private ReorderableArray _entriesList;
+        private ReorderableArray _groupList;
+        private PropertyField _mixerField;
+
+        public static void OpenConfigurationWindow(AudioConfig config)
         {
             AudioServiceWindow wnd = GetWindow<AudioServiceWindow>("Audio Service Window");
+            wnd.Initialize(config);
             wnd.minSize = MinWindowSize;
-            wnd.Show();
         }
 
         [MenuItem("Debug/Close Window")]
@@ -43,10 +41,12 @@ namespace JeanLF.AudioService.Editor
             wnd.Close();
         }
 
-        private void OnEnable()
+        internal void Initialize(AudioConfig config)
         {
-            _inspectorElement = new InspectorElement();
-            Load();
+            _audioConfig = config;
+            _audioConfigSerialized = new SerializedObject(_audioConfig);
+            BindControls();
+            GenerateEnums();
         }
 
         public void CreateGUI()
@@ -55,25 +55,29 @@ namespace JeanLF.AudioService.Editor
 
             VisualTreeAsset visualTree =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{AudioServiceEditorUtils.EditorUIPath}/AudioServiceWindow.uxml");
-
             VisualElement treeAsset = visualTree.CloneTree();
 
             root.Add(treeAsset);
 
-            ObjectField configField = root.Q<ObjectField>(ConfigFieldName);
-            configField.RegisterValueChangedCallback(OnConfigSelected);
-            configField.Bind(_audioConfigSerialized);
-            configField.SetValueWithoutNotify(_audioConfig);
+            _entriesList = root.Q<ReorderableArray>("entries");
+            _entriesList.OnDataUpdate += OnEntriesUpdate;
 
-            root.Q<Button>("generateButton").clicked += GenerateEnums;// += Save;
+            _groupList = root.Q<ReorderableArray>("groups");
+            _groupList.OnDataUpdate += OnGroupsUpdate;
 
-            ReorderableArray entries = root.Q<ReorderableArray>("entries");
-            entries.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.EntriesPropertyPath));
-            entries.OnDataUpdate += OnEntriesUpdate;
+            _mixerField = root.Q<PropertyField>("mixer");
 
-            ReorderableArray groups = root.Q<ReorderableArray>("groups");
-            groups.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.GroupPropertyPath));
-            groups.OnDataUpdate += OnGroupsUpdate;
+            if (_audioConfig != null)
+            {
+                Initialize(_audioConfig);
+            }
+        }
+
+        private void BindControls()
+        {
+            _entriesList.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.EntriesPropertyPath));
+            _groupList.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.GroupPropertyPath));
+            _mixerField.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.MixerProperty));
         }
 
         private void CleanupIdStrings(string arrayPath, string stringPath)
@@ -101,78 +105,6 @@ namespace JeanLF.AudioService.Editor
             CleanupIdStrings(AudioConfig.EntriesPropertyPath, AudioEntry.IdPropertyPath);
 
             GenerateEnums();
-        }
-
-        private async void Load()
-        {
-            string configGuid = EditorPrefs.GetString(AudioConfigKey, "");
-
-            if (string.IsNullOrEmpty(configGuid))
-            {
-                return;
-            }
-
-            _audioConfig = AssetDatabase.LoadAssetAtPath<AudioConfig>(AssetDatabase.GUIDToAssetPath(configGuid));
-            _audioConfigSerialized = new SerializedObject(_audioConfig);
-
-            try
-            {
-                _inspectorElement.Bind(_audioConfigSerialized);
-            }
-            catch (NullReferenceException) //HACK InspectorElement throws an internal error on recompile
-            {
-                await Task.Delay(5);
-                _inspectorElement.Bind(_audioConfigSerialized);
-            }
-        }
-
-        private void Save()
-        {
-            AssetDatabase.TryGetGUIDAndLocalFileIdentifier(_audioConfigSerialized.targetObject, out string configGuid, out long _);
-            EditorPrefs.SetString(AudioConfigKey, configGuid);
-            //TODO change to user settings.
-        }
-
-        private void ClearSave()
-        {
-            _audioConfig = null;
-
-            if (_audioConfigSerialized != null)
-            {
-                _audioConfigSerialized.Dispose();
-                _audioConfigSerialized = null;
-            }
-
-            EditorPrefs.DeleteKey(AudioConfigKey);
-        }
-
-        private void OnConfigSelected(ChangeEvent<UnityEngine.Object> evt)
-        {
-            if (evt.newValue == null)
-            {
-                ClearSave();
-                RefreshWindow();
-
-                return;
-            }
-
-            _audioConfig = (AudioConfig)evt.newValue;
-            _audioConfigSerialized = new SerializedObject(_audioConfig);
-
-            Save();
-            RefreshWindow();
-        }
-
-        private void RefreshWindow()
-        {
-            _inspectorElement.visible = _audioConfig != null;
-            _inspectorElement.Unbind();
-            _inspectorElement.Bind(_audioConfigSerialized);
-        }
-
-        private string CodifyString(string text)
-        {
-            return _enumMemberRegex.Replace(_textInfo.ToTitleCase(text), "");
         }
 
         private void GenerateEnums()
@@ -210,6 +142,10 @@ namespace JeanLF.AudioService.Editor
                 {
                     foreach (string member in members)
                     {
+                        if (string.IsNullOrWhiteSpace(member))
+                        {
+                            continue;
+                        }
                         sourceFile.AppendLine($"{member},");
                     }
                 }
