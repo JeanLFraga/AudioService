@@ -282,6 +282,11 @@ namespace JeanLF.AudioService.Editor
 
         private static string CapitalizeFirstLetter(string text)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return text;
+            }
+
             string original = text;
             return text.Substring(1).Insert(0, char.ToUpper(original[0]).ToString());
         }

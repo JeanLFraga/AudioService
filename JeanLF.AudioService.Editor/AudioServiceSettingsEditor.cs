@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -8,8 +9,6 @@ namespace JeanLF.AudioService.Editor
 {
     internal static class AudioServiceSettingsEditor
     {
-        internal const string SettingsPath = "Assets/AudioService/JeanLF.AudioService/Resources/JeanLF_AS_Settings.asset";
-
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
         {
@@ -27,13 +26,14 @@ namespace JeanLF.AudioService.Editor
 
         internal static JeanLF.AudioService.AudioServiceSettings GetOrCreateSettings()
         {
-            JeanLF.AudioService.AudioServiceSettings settings = AssetDatabase.LoadAssetAtPath<JeanLF.AudioService.AudioServiceSettings>(SettingsPath);
+            JeanLF.AudioService.AudioServiceSettings settings = AssetDatabase.LoadAssetAtPath<JeanLF.AudioService.AudioServiceSettings>(AudioServiceEditorUtils.SettingsAssetPath);
 
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<JeanLF.AudioService.AudioServiceSettings>();
 
-                AssetDatabase.CreateAsset(settings, SettingsPath);
+                Directory.CreateDirectory(Path.GetDirectoryName(AudioServiceEditorUtils.SettingsAssetPath));
+                AssetDatabase.CreateAsset(settings,  AudioServiceEditorUtils.SettingsAssetPath);
                 AssetDatabase.SaveAssets();
             }
 
@@ -43,7 +43,7 @@ namespace JeanLF.AudioService.Editor
         private static void DrawSettings(string searchContext, VisualElement rootElement)
         {
             SerializedObject settings = new SerializedObject(GetOrCreateSettings());
-            StyleSheet styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>("Assets/AudioService/JeanLF.AudioService.Editor/UI/AudioServiceSettings.uss");
+            StyleSheet styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(AudioServiceEditorUtils.EditorUIPath + "/AudioServiceSettings.uss");
             rootElement.styleSheets.Add(styleSheet);
             VisualElement container = new VisualElement()
             {

@@ -6,9 +6,10 @@ namespace JeanLF.AudioService.Editor
     {
         public const string PackageName = "com.jeanlf.audioservice";
 
-        public const string BaseServicePath = "Assets/AudioService";
-        public const string RuntimeAssetsPath = BaseServicePath + "/JeanLF.AudioService";
+        public const string BaseServicePath = "Packages/" + PackageName;
         public const string EditorUIPath = BaseServicePath + "/JeanLF.AudioService.Editor/UI";
+        public const string RuntimeAssetsPath = "Assets/Plugins/JeanLF.AudioService";
+        public const string SettingsAssetPath = RuntimeAssetsPath + "/Resources/JeanLF_AS_Settings.asset";
 
         public const string GeneratedAssetsPath = BaseServicePath + "/JeanLF.AudioService/Generated";
         public const string EntriesFilePath = GeneratedAssetsPath + "/EntryId.cs";

@@ -1,0 +1,21 @@
+{
+  "name":"com.jeanlf.audioservice",
+  "displayName":"Audio Service",
+  "description": "Audio Service acts as a manager for your audio playing necessities, with configuration through the Editor for easy access to multi-disciplinary teams",
+  "author":"Jean Luca de Fraga",
+  "version":"1.0.0",
+  "documentationUrl":"https://github.com/JeanLFraga/AudioService",
+  "changelogUrl":"https://github.com/JeanLFraga/AudioService/blob/main/CHANGELOG.md",
+  "licensesUrl":"https://github.com/JeanLFraga/AudioService/blob/main/LICENSE.md",
+  "license":"MIT",
+  "type": "tool",
+  "unity":"2020.3",
+  "unityRelease":"30f1",
+  "dependencies": {
+    "com.cysharp.unitask": "2.3.1",
+    "com.unity.addressables": "1.18.19",
+    "com.unity.ide.rider": "3.0.15",
+    "com.unity.ide.visualstudio": "2.0.16",
+    "com.unity.ugui": "1.0.0"
+  }
+}
