@@ -129,11 +129,11 @@ namespace JeanLF.AudioService.Editor
 
             EditorGUI.LabelField(labelRect, "/", _labelStyle);
 
-            SerializedProperty groupProperty = property.FindPropertyRelative(AudioReference.GroupMemberPath);
-            SerializedProperty entryProperty = property.FindPropertyRelative(AudioReference.EntryMemberPath);
+            SerializedProperty entryValueProperty = property.FindPropertyRelative(AudioReference.EntryStringPath);
+            SerializedProperty groupValueProperty = property.FindPropertyRelative(AudioReference.GroupStringPath);
 
-            DrawAdvancedDropdown(groupRect, groupProperty, GetGroupsIds());
-            DrawAdvancedDropdown(entryRect, entryProperty, GetEntriesIds());
+            DrawIdDropdown(groupRect, groupValueProperty, GetGroupsIds());
+            DrawIdDropdown(entryRect, entryValueProperty, GetEntriesIds());
 
             EditorGUI.EndProperty();
         }
@@ -148,9 +148,9 @@ namespace JeanLF.AudioService.Editor
             return Settings.Configuration.AudioEntries.Select(x => x.ID).ToList();
         }
 
-        private void DrawAdvancedDropdown(Rect groupRect, SerializedProperty property, IReadOnlyList<string> items)
+        private void DrawIdDropdown(Rect groupRect, SerializedProperty property, IReadOnlyList<string> items)
         {
-            if (EditorGUI.DropdownButton(groupRect, new GUIContent(property.stringValue), FocusType.Keyboard))
+            if (EditorGUI.DropdownButton(groupRect, new GUIContent(ObjectNames.NicifyVariableName(property.stringValue)), FocusType.Keyboard))
             {
                 ListAdvancedDropdown dropdown = new ListAdvancedDropdown(new AdvancedDropdownState(), property.displayName, items, property.stringValue);
                 dropdown.Show(groupRect);

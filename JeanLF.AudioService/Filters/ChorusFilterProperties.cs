@@ -27,7 +27,15 @@ namespace JeanLF.AudioService.Filters
             _depth = 0.03f;
         }
 
+        public IFilterProperty DefaultValue => DefaultValues;
         public Type FilterType => typeof(AudioChorusFilter);
+        public float DryMix => _dryMix;
+        public float WetMix1 => _wetMix1;
+        public float WetMix2 => _wetMix2;
+        public float WetMix3 => _wetMix3;
+        public float Delay => _delay;
+        public float Rate => _rate;
+        public float Depth => _depth;
 
         public void SetupFilter(ref Component component)
         {
@@ -40,13 +48,5 @@ namespace JeanLF.AudioService.Filters
             filter.rate = _rate;
             filter.depth = _depth;
         }
-
-        public float DryMix => _dryMix;
-        public float WetMix1 => _wetMix1;
-        public float WetMix2 => _wetMix2;
-        public float WetMix3 => _wetMix3;
-        public float Delay => _delay;
-        public float Rate => _rate;
-        public float Depth => _depth;
     }
 }

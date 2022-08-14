@@ -18,7 +18,7 @@ namespace JeanLF.AudioService.Editor
     public class AudioServiceWindow : EditorWindow
     {
         private static readonly Vector2 MinWindowSize = new Vector2(350f, 300);
-        private readonly Regex _enumMemberRegex = new Regex("(\b[0-9]+)|([^a-zA-Z0-9])");
+        private readonly Regex _enumMemberRegex = new Regex("(^[^A-Za-z]+)|([^a-zA-Z0-9])");
 
         private AudioConfig _audioConfig;
         private SerializedObject _audioConfigSerialized;
@@ -87,7 +87,7 @@ namespace JeanLF.AudioService.Editor
             for (int i = 0; i < arrayProp.arraySize; i++)
             {
                 SerializedProperty idProp = arrayProp.GetArrayElementAtIndex(i).FindPropertyRelative(stringPath);
-                idProp.stringValue = _enumMemberRegex.Replace(CapitalizeFirstLetter(idProp.stringValue), "");
+                idProp.stringValue = CapitalizeFirstLetter(_enumMemberRegex.Replace(idProp.stringValue, ""));
             }
 
             arrayProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();

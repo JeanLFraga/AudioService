@@ -15,7 +15,9 @@ namespace JeanLF.AudioService.Filters
             _distortionLevel = distortionLevel;
         }
 
+        public IFilterProperty DefaultValue => DefaultValues;
         public Type FilterType => typeof(AudioDistortionFilter);
+        public float DistortionLevel => _distortionLevel;
 
         public void SetupFilter(ref Component component)
         {
@@ -23,6 +25,5 @@ namespace JeanLF.AudioService.Filters
             filter.distortionLevel = _distortionLevel;
         }
 
-        public float DistortionLevel => _distortionLevel;
     }
 }

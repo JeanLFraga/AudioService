@@ -37,18 +37,18 @@ namespace JeanLF.AudioService.Editor
             EditorGUI.PropertyField(position, property, label, true);
             position.y += EditorGUI.GetPropertyHeight(property) + VerticalSpacing;
 
+            SerializedProperty listProperty = property.FindPropertyRelative(AudioEntry.FilterPropertyName);
+
             if (!_reorderableLists.TryGetValue(property.propertyPath, out _list))
             {
-                _list = new ReorderableList(property.serializedObject,
-                                            property.FindPropertyRelative(AudioEntry.FilterPropertyName));
-
-                _list.drawElementCallback = DrawElementCallback;
-                _list.elementHeightCallback = ElementHeightCallback;
-                _list.onAddDropdownCallback = OnAddDropdownCallback;
+                _list = new ReorderableList(property.serializedObject, listProperty,true,false,true,true)
+                {
+                    drawElementCallback = DrawElementCallback,
+                    elementHeightCallback = ElementHeightCallback,
+                    onAddDropdownCallback = OnAddDropdownCallback,
+                };
                 _reorderableLists.Add(property.propertyPath, _list);
             }
-
-            SerializedProperty listProperty = property.FindPropertyRelative(AudioEntry.FilterPropertyName);
 
             if (property.isExpanded)
             {
@@ -72,6 +72,7 @@ namespace JeanLF.AudioService.Editor
 
             EditorGUI.EndProperty();
         }
+
 
         private float ElementHeightCallback(int index)
         {
@@ -157,14 +158,13 @@ namespace JeanLF.AudioService.Editor
             void onAddClick(object type)
             {
                 object obj = Activator.CreateInstance((Type)type);
+                object defaultValues = ((IFilterProperty)obj).DefaultValue;
                 int pos = reorderable.serializedProperty.arraySize;
                 reorderable.serializedProperty.arraySize++;
                 SerializedProperty property = reorderable.serializedProperty.GetArrayElementAtIndex(pos);
-                property.managedReferenceValue = obj;
+                property.managedReferenceValue = defaultValues;
                 reorderable.serializedProperty.serializedObject.ApplyModifiedProperties();
                 reorderable.serializedProperty.serializedObject.Update();
-
-                GetPropertyHeight(reorderable.serializedProperty, GUIContent.none);
             }
 
             menu.ShowAsContext();
@@ -175,14 +175,14 @@ namespace JeanLF.AudioService.Editor
             float defaultSize = EditorGUI.GetPropertyHeight(property);
             SerializedProperty listProperty = property.FindPropertyRelative(AudioEntry.FilterPropertyName);
             float filterFoldout = DefaultControlHeight;
-            _reorderableLists.TryGetValue(property.propertyPath, out ReorderableList value);
+            _reorderableLists.TryGetValue(property.propertyPath, out _list);
 
-            if (value == null)
+            if (_list == null)
             {
                 return defaultSize + filterFoldout;
             }
 
-            float list = listProperty.isExpanded ? value.GetHeight() + VerticalSpacing : 0;
+            float list = listProperty.isExpanded ? _list.GetHeight() + VerticalSpacing : 0;
 
             if (!property.isExpanded)
             {

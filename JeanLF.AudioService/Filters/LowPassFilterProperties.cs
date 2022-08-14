@@ -17,9 +17,10 @@ namespace JeanLF.AudioService.Filters
             _resonanceQ = 1.0f;
         }
 
+        public IFilterProperty DefaultValue => DefaultValues;
+        public Type FilterType => typeof(AudioLowPassFilter);
         public float CutoffFrequency => _cutoffFrequency;
         public float ResonanceQ => _resonanceQ;
-        public Type FilterType => typeof(AudioLowPassFilter);
 
         public void SetupFilter(ref Component component)
         {

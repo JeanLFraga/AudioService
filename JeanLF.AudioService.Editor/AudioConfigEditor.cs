@@ -9,7 +9,12 @@ namespace JeanLF.AudioService.Editor
     {
         public override void OnInspectorGUI()
         {
-            DrawPropertiesExcluding(serializedObject, "m_Script");
+            EditorGUILayout.HelpBox("Please, use the Audio Service edit window", MessageType.Info);
+
+            if (GUILayout.Button("Edit"))
+            {
+                AudioServiceWindow.OpenConfigurationWindow((AudioConfig)target);
+            }
         }
     }
 }

@@ -6,8 +6,8 @@ namespace JeanLF.AudioService
     public struct AudioReference : ISerializationCallbackReceiver
     {
 #if UNITY_EDITOR
-        internal const string EntryMemberPath = nameof(_entryId);
-        internal const string GroupMemberPath = nameof(_groupId);
+        internal const string EntryStringPath = nameof(_entryString);
+        internal const string GroupStringPath = nameof(_groupString);
 #endif
 
 
@@ -32,44 +32,22 @@ namespace JeanLF.AudioService
 
         public void OnBeforeSerialize()
         {
-            _entryString = _entryId.ToString();
-            if (_entryId == EntryId.Invalid)
-            {
-                _entryString = null;
-            }
-
-            _groupString = _groupId.ToString();
-            if (_groupId == GroupId.Invalid)
-            {
-                _groupString = null;
-            }
+            EntryId.TryParse(_entryString, out _entryId);
+            GroupId.TryParse(_groupString, out _groupId);
         }
 
         public void OnAfterDeserialize()
         {
-            if (!string.IsNullOrWhiteSpace(_entryString))
-            {
-                if (!EntryId.TryParse(_entryString, out _entryId))
-                {
-                    _entryId = EntryId.Invalid;
-                }
-            }
-            else
+            if (!EntryId.TryParse(_entryString, out _entryId))
             {
                 _entryId = EntryId.Invalid;
             }
 
-            if (!string.IsNullOrWhiteSpace(_groupString))
-            {
-                if (!GroupId.TryParse(_groupString, out _entryId))
-                {
-                    _groupId = GroupId.Invalid;
-                }
-            }
-            else
+            if (!GroupId.TryParse(_groupString, out _groupId))
             {
                 _groupId = GroupId.Invalid;
             }
+
         }
     }
 }

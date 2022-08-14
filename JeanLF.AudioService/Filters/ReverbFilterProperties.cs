@@ -7,7 +7,7 @@ namespace JeanLF.AudioService.Filters
     public struct ReverbFilterProperties : IFilterProperty
     {
         public static readonly ReverbFilterProperties DefaultValues = new ReverbFilterProperties(AudioReverbPreset.User);
-        
+
         [SerializeField] private AudioReverbPreset _reverbPreset;
         [Range(-10000, 0)] [SerializeField] private float _dryLevel;
         [Range(-10000, 0)] [SerializeField] private float _room;
@@ -43,7 +43,23 @@ namespace JeanLF.AudioService.Filters
             _density = 100;
         }
 
+        public IFilterProperty DefaultValue => DefaultValues;
         public Type FilterType => typeof(AudioReverbFilter);
+        public AudioReverbPreset ReverbPreset => _reverbPreset;
+        public float DryLevel => _dryLevel;
+        public float Room => _room;
+        public float RoomHF => _roomHF;
+        public float RoomLF => _roomLF;
+        public float DecayTime => _decayTime;
+        public float DecayHFRatio => _decayHFRatio;
+        public float ReflectionsLevel => _reflectionsLevel;
+        public float ReflectionsDelay => _reflectionsDelay;
+        public float ReverbLevel => _reverbLevel;
+        public float ReverbDelay => _reverbDelay;
+        public float HFReference => _HFReference;
+        public float LFReference => _LFReference;
+        public float Diffusion => _diffusion;
+        public float Density => _density;
 
         public void SetupFilter(ref Component component)
         {
@@ -70,21 +86,5 @@ namespace JeanLF.AudioService.Filters
             filter.diffusion = _diffusion;
             filter.density = _density;
         }
-
-        public AudioReverbPreset ReverbPreset => _reverbPreset;
-        public float DryLevel => _dryLevel;
-        public float Room => _room;
-        public float RoomHF => _roomHF;
-        public float RoomLF => _roomLF;
-        public float DecayTime => _decayTime;
-        public float DecayHFRatio => _decayHFRatio;
-        public float ReflectionsLevel => _reflectionsLevel;
-        public float ReflectionsDelay => _reflectionsDelay;
-        public float ReverbLevel => _reverbLevel;
-        public float ReverbDelay => _reverbDelay;
-        public float HFReference => _HFReference;
-        public float LFReference => _LFReference;
-        public float Diffusion => _diffusion;
-        public float Density => _density;
     }
 }
