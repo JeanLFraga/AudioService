@@ -13,8 +13,24 @@ namespace JeanLF.AudioService
 
         [Delayed][SerializeField] private string _id;
         [SerializeField] private AudioMixerGroup _mixerGroup;
+        private GroupId _cachedId;
 
-        public string ID => _id;
+        public string Id => _id;
+        public GroupId ConvertedId
+        {
+            get
+            {
+                if (_cachedId == GroupId.Invalid)
+                {
+                    if (!GroupId.TryParse(_id, out _cachedId))
+                    {
+                        _cachedId = GroupId.Invalid;
+                    }
+                }
+
+                return _cachedId;
+            }
+        }
         public AudioMixerGroup MixerGroup => _mixerGroup;
     }
 }

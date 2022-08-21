@@ -119,12 +119,12 @@ namespace JeanLF.AudioService.Editor
             }
 
             StreamWriter file = new StreamWriter(AudioServiceEditorUtils.EntriesFilePath,false);
-            SourceFile source = WriteEnum(nameof(EntryId), RemoveDuplicates(_audioConfig.AudioEntries.Select(x => x.ID)));
+            SourceFile source = WriteEnum(nameof(EntryId), RemoveDuplicates(_audioConfig.AudioEntries.Select(x => x.Id)));
             file.Write(source.ToString());
             file.Close();
 
             file = new StreamWriter(AudioServiceEditorUtils.GroupFilePath, false);
-            source = WriteEnum(nameof(GroupId), RemoveDuplicates(_audioConfig.AudioGroups.Select(x => x.ID)));
+            source = WriteEnum(nameof(GroupId), RemoveDuplicates(_audioConfig.AudioGroups.Select(x => x.Id)));
             file.Write(source.ToString());
             file.Close();
 

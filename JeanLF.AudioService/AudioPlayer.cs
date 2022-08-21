@@ -3,28 +3,74 @@ using JeanLF.AudioService.Filters;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 namespace JeanLF.AudioService
 {
     [RequireComponent(typeof(AudioSource))]
-    public class AudioPlayer : MonoBehaviour
+    public class AudioPlayer : MonoBehaviour, IDisposable
     {
         private AudioSource _audioSource;
         private Dictionary<Type, Component> _filters;
-        public EntryId CurrentId { get; private set; }
-        public bool IsPlaying { get; private set; }
-
+        private AudioEntry _currentEntry;
         private Transform _cachedTransform;
 
-        public void Pause()
+        internal Action onKill;
+
+        public EntryId CurrentId => _currentEntry.ConvertedId;
+        public bool IsPaused { get; private set; }
+        public bool IsPlaying => _audioSource.isPlaying;
+        internal bool IsActive => _audioSource.isPlaying || IsPaused;
+
+        public AudioPlayer Attach(Transform parent)
         {
-            _audioSource.Pause();
+            _cachedTransform.parent = parent;
+
+            return this;
         }
 
-        public void UnPause()
+        public AudioPlayer Position(Vector3 position)
+        {
+            _cachedTransform.position = position;
+
+            return this;
+        }
+
+        public AudioPlayer LocalPosition(Vector3 localPosition)
+        {
+            _cachedTransform.localPosition = localPosition;
+
+            return this;
+        }
+
+        public AudioPlayer Pause()
+        {
+            _audioSource.Pause();
+            IsPaused = true;
+
+            return this;
+        }
+
+        public AudioPlayer Resume()
         {
             _audioSource.UnPause();
+            IsPaused = false;
+
+            return this;
+        }
+
+        public void Dispose()
+        {
+            for (int i = 0; i < _currentEntry.Clips.Length; i++)
+            {
+                if (_currentEntry.Clips[i].Asset != null)
+                {
+                    _currentEntry.Clips[i].ReleaseAsset();
+                }
+            }
+            onKill?.Invoke();
         }
 
         internal void Setup()
@@ -45,23 +91,59 @@ namespace JeanLF.AudioService
             }
         }
 
-        internal async UniTask Play(EntryId audioId, AudioClip clip, AudioPlayerProperties playerProperties, IFilterProperty[] filterProperties)
+        internal async UniTask Play(AudioEntry entry, AudioPlayerProperties playerProperties)
         {
-            CurrentId = audioId;
+            _currentEntry = entry;
 
             SetAudioProperties(playerProperties);
+            SetFilterProperties(entry.Filters);
 
-            IsPlaying = true;
-            _audioSource.clip = clip;
-            _audioSource.Play();
-            await UniTask.WaitWhile(() => IsPlaying);
-            IsPlaying = false;
+            switch (entry.Mode)
+            {
+                case AudioEntry.PlayMode.Random:
+                {
+                    AssetReference assetReference = entry.Clips[UnityEngine.Random.Range(0, entry.Clips.Length)];
+                    _audioSource.clip = LoadClip(assetReference);
+                    _audioSource.Play();
+                    await UniTask.WaitWhile(() => _audioSource.isPlaying);
+                    assetReference.ReleaseAsset();
+                    break;
+                }
+
+                case AudioEntry.PlayMode.Sequential:
+                {
+                    for (int i = 0; i < entry.Clips.Length; i++)
+                    {
+                        AssetReference assetReference = entry.Clips[i];
+                        _audioSource.clip = LoadClip(assetReference);
+                        _audioSource.Play();
+                        await UniTask.WaitWhile(() => _audioSource.isPlaying);
+                        assetReference.ReleaseAsset();
+                    }
+
+                    break;
+                }
+
+                case AudioEntry.PlayMode.SequentialLoop:
+                {
+                    int index = 0;
+
+                    while (_audioSource.isPlaying)
+                    {
+                        _audioSource.clip = LoadClip(entry.Clips[index]);
+                        _audioSource.Play();
+                        await UniTask.WaitWhile(() => _audioSource.isPlaying);
+                        index = (index + 1) % entry.Clips.Length;
+                    }
+
+                    break;
+                }
+            }
         }
 
         internal void Stop()
         {
             _audioSource.Stop();
-            IsPlaying = false;
         }
 
         private void SetAudioProperties(AudioPlayerProperties properties)
@@ -81,5 +163,23 @@ namespace JeanLF.AudioService
             _audioSource.maxDistance = properties.MaxRolloff;
         }
 
+        private void SetFilterProperties(IFilterProperty[] properties)
+        {
+            for (int i = 0; i < properties.Length; i++)
+            {
+                Component component = _filters[properties[i].FilterType];
+                properties[i].SetupFilter(ref component);
+            }
+        }
+
+        private AudioClip LoadClip(AssetReference assetReference)
+        {
+            if (assetReference.Asset == null)
+            {
+                return assetReference.LoadAssetAsync<AudioClip>().WaitForCompletion();
+            }
+
+            return assetReference.Asset as AudioClip;
+        }
     }
 }

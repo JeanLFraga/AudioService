@@ -39,7 +39,7 @@ namespace JeanLF.AudioService
 
                         AudioPlayer player = gameObject.AddComponent<AudioPlayer>();
                         player.Setup(audioEntries[i].Filters);
-                        _filterPlayers[audioEntries[i].ID].Enqueue(player);
+                        _filterPlayers[audioEntries[i].Id].Enqueue(player);
                     }
                 }
             }

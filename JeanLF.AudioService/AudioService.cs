@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Audio;
 
 namespace JeanLF.AudioService
@@ -11,15 +12,16 @@ namespace JeanLF.AudioService
     {
         private readonly AudioConfig _configuration;
         private readonly AudioPool _pool;
-        private readonly HashSet<AudioPlayerGroup> _audioGroups = new HashSet<AudioPlayerGroup>();
-        private readonly Stack<AudioMixerSnapshot> _snapshotsStack = new Stack<AudioMixerSnapshot>();
+        private readonly Dictionary<GroupId, AudioPlayerGroup> _audioGroups = new();
+        private readonly Dictionary<EntryId, AudioEntry> _audioEntries = new();
+        private readonly Stack<AudioMixerSnapshot> _snapshotsStack = new();
 
         private void Test()
         {
             AudioMixerGroup group = default;
             AudioPlayerGroup playerGroup = new AudioPlayerGroup("te", group, new AudioPool(null,10,10));
 
-            IReadOnlyList<AudioPlayer> test = playerGroup.GetPlayingAudio();
+            IReadOnlyList<AudioPlayer> test = playerGroup.GetPlayingAudios();
         }
 
         public AudioService()
@@ -38,38 +40,79 @@ namespace JeanLF.AudioService
 
             for (int i = 0; i < groups.Count; i++)
             {
-                _audioGroups.Add(new AudioPlayerGroup(groups[i].ID, groups[i].MixerGroup, _pool));
+                _audioGroups.Add(groups[i].ConvertedId, new AudioPlayerGroup(groups[i].Id, groups[i].MixerGroup, _pool));
+            }
+
+            IReadOnlyList<AudioEntry> entries = _configuration.AudioEntries;
+            for (int i = 0; i < entries.Count; i++)
+            {
+                _audioEntries.Add(entries[i].ConvertedId, entries[i]);
             }
         }
 
-        public UniTask Play(AudioReference audio, AudioPlayerProperties? overrideProperties = null)
+        public AudioPlayer Play(AudioReference audio, AudioPlayerProperties? overrideProperties = null)
         {
-            throw new NotImplementedException();
+            return Play(audio.EntryId, audio.GroupId, overrideProperties);
         }
 
-        public void Pause()
+        public AudioPlayer Play(EntryId entryId, GroupId groupId, AudioPlayerProperties? overrideProperties = null)
         {
-            throw new NotImplementedException();
+            AudioEntry entry = _audioEntries[entryId];
+            AudioPlayer player = _audioGroups[groupId].PlayAudio(entry, overrideProperties == null ? entry.AudioProperties : overrideProperties.Value);
+            return player;
         }
 
-        public void PauseGroup()
+        public void Pause(AudioReference audio)
         {
-            throw new NotImplementedException();
+            Pause(audio.EntryId, audio.GroupId);
         }
 
-        public void Stop()
+        public void Pause(EntryId entryId, GroupId groupId)
         {
-            throw new NotImplementedException();
+            _audioGroups[groupId].PauseAudio(entryId);
         }
 
-        public void StopGroup()
+        public void Resume(AudioReference audio)
         {
-            throw new NotImplementedException();
+            Resume(audio.EntryId, audio.GroupId);
+        }
+
+        public void Resume(EntryId entryId, GroupId groupId)
+        {
+            _audioGroups[groupId].ResumeAudio(entryId);
+        }
+
+        public void PauseGroup(GroupId groupId)
+        {
+            _audioGroups[groupId].PauseAll();
+        }
+
+        public void ResumeGroup(GroupId groupId)
+        {
+            _audioGroups[groupId].Resume();
+        }
+
+        public void Stop(AudioReference audio)
+        {
+            Stop(audio.EntryId, audio.GroupId);
+        }
+
+        public void Stop(EntryId entryId, GroupId groupId)
+        {
+            _audioGroups[groupId].StopAudio(entryId);
+        }
+
+        public void StopGroup(GroupId groupId)
+        {
+            _audioGroups[groupId].StopAll();
         }
 
         public void StopAll()
         {
-            throw new NotImplementedException();
+            foreach (KeyValuePair<GroupId, AudioPlayerGroup> keyPair in _audioGroups)
+            {
+                keyPair.Value.StopAll();
+            }
         }
     }
 }

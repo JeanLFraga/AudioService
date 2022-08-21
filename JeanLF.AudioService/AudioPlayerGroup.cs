@@ -22,11 +22,11 @@ namespace JeanLF.AudioService
             _pool = pool;
         }
 
-        internal AudioPlayer PlayAudio(EntryId audioId, AudioClip clip, AudioPlayerProperties playerProperties, IFilterProperty[] filterProperties)
+        internal AudioPlayer PlayAudio(AudioEntry entry, AudioPlayerProperties playerProperties)
         {
             AudioPlayer player = _pool.GetAudioPlayer();
 
-            UniTask task = player.Play(audioId, clip, playerProperties, filterProperties);
+            UniTask task = player.Play(entry, playerProperties);
             _playingAudios.Add(player);
             AwaitFinish(player, task).Forget();
 
@@ -35,36 +35,64 @@ namespace JeanLF.AudioService
 
         internal void PauseAudio(EntryId audioId)
         {
-            foreach (AudioPlayer variable in _playingAudios)
+            foreach (AudioPlayer player in _playingAudios)
             {
-                if (variable.CurrentId == audioId)
+                if (player.CurrentId == audioId)
                 {
-                    variable.Stop();
+                    player.Pause();
                 }
+            }
+        }
+
+        internal void ResumeAudio(EntryId audioId)
+        {
+            foreach (AudioPlayer player in _playingAudios)
+            {
+                if (player.CurrentId == audioId)
+                {
+                    player.Resume();
+                }
+            }
+        }
+
+        internal void PauseAll()
+        {
+            foreach (AudioPlayer player in _playingAudios)
+            {
+                player.Pause();
+            }
+        }
+
+        internal void Resume()
+        {
+            foreach (AudioPlayer player in _playingAudios)
+            {
+                player.Resume();
             }
         }
 
         internal void StopAudio(EntryId audioId)
         {
-            foreach (AudioPlayer variable in _playingAudios)
+            foreach (AudioPlayer player in _playingAudios)
             {
-                if (variable.CurrentId == audioId)
+                if (player.CurrentId == audioId)
                 {
-                    variable.Stop();
+                    player.Stop();
                 }
             }
         }
 
         internal void StopAll()
         {
-            foreach (AudioPlayer variable in _playingAudios)
+            foreach (AudioPlayer player in _playingAudios)
             {
-                variable.Stop();
+                player.Stop();
             }
             _playingAudios.Clear();
         }
 
-        internal IReadOnlyList<AudioPlayer> GetPlayingAudio()
+        [Pure]
+        internal IReadOnlyList<AudioPlayer> GetPlayingAudios()
         {
             return _playingAudios.ToList();
         }

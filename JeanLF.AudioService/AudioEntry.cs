@@ -16,12 +16,21 @@ namespace JeanLF.AudioService
         public static readonly string FilterPropertyName = nameof(_filters);
 #endif
 
+        internal enum PlayMode
+        {
+            Random,
+            Sequential,
+            SequentialLoop
+        }
+
         public AudioEntry(float volume = 1f)
         {
             _id = string.Empty;
             _clips = Array.Empty<AssetReference>();
             _audioProperties = new AudioPlayerProperties(volume:1f);
             _filters = Array.Empty<IFilterProperty>();
+            _cachedId = EntryId.Invalid;
+            _mode = PlayMode.Random;
         }
 
         public AudioEntry(
@@ -48,14 +57,34 @@ namespace JeanLF.AudioService
                 maxPitch, spatialBlend, stereoPan, reverbZoneMix, dopplerLevel, spread, volumeRolloff, minRolloff,
                 maxRolloff);
             _filters = Array.Empty<IFilterProperty>();
+            _cachedId = EntryId.Invalid;
+            _mode = PlayMode.Random;
         }
 
         [Delayed] [SerializeField] private string _id;
         [SerializeField] private AssetReference[] _clips;
+        [SerializeField] private PlayMode _mode;
         [SerializeField] private AudioPlayerProperties _audioProperties;
         [HideInInspector] [SerializeReference] private IFilterProperty[] _filters;
+        private EntryId _cachedId;
 
-        public string ID => _id;
+        public string Id => _id;
+        public EntryId ConvertedId
+        {
+            get
+            {
+                if (_cachedId == EntryId.Invalid)
+                {
+                    if (!EntryId.TryParse(_id, out _cachedId))
+                    {
+                        _cachedId = EntryId.Invalid;
+                    }
+                }
+
+                return _cachedId;
+            }
+        }
+        public PlayMode Mode => _mode;
         public AssetReference[] Clips => _clips;
         public AudioPlayerProperties AudioProperties => _audioProperties;
         public IFilterProperty[] Filters => _filters;
