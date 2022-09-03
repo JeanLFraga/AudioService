@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.Audio;
 
 namespace JeanLF.AudioService
 {
@@ -27,6 +28,7 @@ namespace JeanLF.AudioService
         public AudioPlayer Attach(Transform parent)
         {
             _cachedTransform.parent = parent;
+            _cachedTransform.localPosition = Vector3.zero;
 
             return this;
         }
@@ -70,6 +72,11 @@ namespace JeanLF.AudioService
                     _currentEntry.Clips[i].ReleaseAsset();
                 }
             }
+
+            _cachedTransform.position = Vector3.zero;
+            _cachedTransform.parent = null;
+            IsPaused = false;
+
             onKill?.Invoke();
         }
 
@@ -77,6 +84,7 @@ namespace JeanLF.AudioService
         {
             _audioSource = GetComponent<AudioSource>();
             _cachedTransform = transform;
+            
         }
 
         internal void Setup(IFilterProperty[] filters)
@@ -91,10 +99,11 @@ namespace JeanLF.AudioService
             }
         }
 
-        internal async UniTask Play(AudioEntry entry, AudioPlayerProperties playerProperties)
+        internal async UniTask Play(AudioEntry entry, AudioPlayerProperties playerProperties, AudioMixerGroup mixerGroup)
         {
             _currentEntry = entry;
 
+            _audioSource.outputAudioMixerGroup = mixerGroup;
             SetAudioProperties(playerProperties);
             SetFilterProperties(entry.Filters);
 
@@ -105,7 +114,7 @@ namespace JeanLF.AudioService
                     AssetReference assetReference = entry.Clips[UnityEngine.Random.Range(0, entry.Clips.Length)];
                     _audioSource.clip = LoadClip(assetReference);
                     _audioSource.Play();
-                    await UniTask.WaitWhile(() => _audioSource.isPlaying);
+                    await UniTask.WaitWhile(() => _audioSource.isPlaying, cancellationToken: this.GetCancellationTokenOnDestroy());
                     assetReference.ReleaseAsset();
                     break;
                 }
@@ -117,7 +126,7 @@ namespace JeanLF.AudioService
                         AssetReference assetReference = entry.Clips[i];
                         _audioSource.clip = LoadClip(assetReference);
                         _audioSource.Play();
-                        await UniTask.WaitWhile(() => _audioSource.isPlaying);
+                        await UniTask.WaitWhile(() => _audioSource.isPlaying, cancellationToken: this.GetCancellationTokenOnDestroy());
                         assetReference.ReleaseAsset();
                     }
 
@@ -128,13 +137,14 @@ namespace JeanLF.AudioService
                 {
                     int index = 0;
 
-                    while (_audioSource.isPlaying)
+                    do
                     {
                         _audioSource.clip = LoadClip(entry.Clips[index]);
                         _audioSource.Play();
-                        await UniTask.WaitWhile(() => _audioSource.isPlaying);
+                        await UniTask.WaitWhile(() => _audioSource.isPlaying, cancellationToken: this.GetCancellationTokenOnDestroy());
                         index = (index + 1) % entry.Clips.Length;
                     }
+                    while (_audioSource.isPlaying);
 
                     break;
                 }

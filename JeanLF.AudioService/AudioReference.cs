@@ -7,7 +7,9 @@ namespace JeanLF.AudioService
     {
 #if UNITY_EDITOR
         internal const string EntryStringPath = nameof(_entryString);
+        internal const string EntryEnumPath = nameof(_entryId);
         internal const string GroupStringPath = nameof(_groupString);
+        internal const string GroupEnumPath = nameof(_groupId);
 #endif
 
 

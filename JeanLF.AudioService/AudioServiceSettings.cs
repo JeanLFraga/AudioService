@@ -6,6 +6,7 @@ namespace JeanLF.AudioService
 {
     public class AudioServiceSettings : ScriptableObject
     {
+        internal const string FileName = "JeanLF_AS_Settings";
 
 #if UNITY_EDITOR
         internal const string ConfigMemberPath = nameof(_config);
@@ -31,7 +32,7 @@ namespace JeanLF.AudioService
         public int FilteredSources => _filteredSources;
         public AudioConfig Configuration => _config;
 
-        public void OverrideConfiguration(AudioConfig config)
+        internal void OverrideConfiguration(AudioConfig config)
         {
             _config = config;
         }

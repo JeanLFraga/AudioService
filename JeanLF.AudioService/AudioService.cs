@@ -16,17 +16,9 @@ namespace JeanLF.AudioService
         private readonly Dictionary<EntryId, AudioEntry> _audioEntries = new();
         private readonly Stack<AudioMixerSnapshot> _snapshotsStack = new();
 
-        private void Test()
-        {
-            AudioMixerGroup group = default;
-            AudioPlayerGroup playerGroup = new AudioPlayerGroup("te", group, new AudioPool(null,10,10));
-
-            IReadOnlyList<AudioPlayer> test = playerGroup.GetPlayingAudios();
-        }
-
         public AudioService()
         {
-            AudioServiceSettings settings = Resources.Load<AudioServiceSettings>("JeanLF_AS_Settings.asset");
+            AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(AudioServiceSettings.FileName);
             _configuration = settings.Configuration;
 
             if (_configuration == null)
@@ -113,6 +105,11 @@ namespace JeanLF.AudioService
             {
                 keyPair.Value.StopAll();
             }
+        }
+
+        public void Dispose()
+        {
+            _pool?.Dispose();
         }
     }
 }

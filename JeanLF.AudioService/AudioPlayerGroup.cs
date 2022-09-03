@@ -24,9 +24,17 @@ namespace JeanLF.AudioService
 
         internal AudioPlayer PlayAudio(AudioEntry entry, AudioPlayerProperties playerProperties)
         {
-            AudioPlayer player = _pool.GetAudioPlayer();
+            AudioPlayer player;
+            if (entry.HasFilters)
+            {
+                player = _pool.GetFilterPlayer(entry.Id);
+            }
+            else
+            {
+                player = _pool.GetAudioPlayer();
+            }
 
-            UniTask task = player.Play(entry, playerProperties);
+            UniTask task = player.Play(entry, playerProperties, _mixerGroup);
             _playingAudios.Add(player);
             AwaitFinish(player, task).Forget();
 
@@ -100,6 +108,7 @@ namespace JeanLF.AudioService
         private async UniTaskVoid AwaitFinish(AudioPlayer player, UniTask task)
         {
             await task;
+            player.Dispose();
             _playingAudios.Remove(player);
         }
     }

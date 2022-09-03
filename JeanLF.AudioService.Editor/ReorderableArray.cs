@@ -14,6 +14,7 @@ namespace JeanLF.AudioService.Editor
         public delegate bool SearchDelegate(SerializedProperty property);
         public event ReorderableList.AddDropdownCallbackDelegate AddDropdownCallback;
         public event Action OnDataUpdate;
+        public event Action OnItemAdd;
 
         private SerializedProperty _arrayProperty;
         private bool _draggable = true;
@@ -113,6 +114,13 @@ namespace JeanLF.AudioService.Editor
             _reorderable.elementHeightCallback = ElementHeightCallback;
             _reorderable.onChangedCallback = OnChangedCallback;
             _reorderable.onAddDropdownCallback = AddDropdownCallback;
+            _reorderable.onAddCallback = OnAddCallback;
+        }
+
+        private void OnAddCallback(ReorderableList list)
+        {
+            ReorderableList.defaultBehaviours.DoAddButton(list);
+            OnItemAdd?.Invoke();
         }
 
         private void DrawHeaderCallback(Rect rect1)

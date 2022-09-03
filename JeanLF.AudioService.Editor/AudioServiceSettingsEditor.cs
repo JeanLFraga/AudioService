@@ -8,11 +8,17 @@ using UnityEngine.UIElements;
 
 namespace JeanLF.AudioService.Editor
 {
+    [InitializeOnLoad]
     internal static class AudioServiceSettingsEditor
     {
         private static Button _editButton;
         private static SerializedObject _settings;
         private static ObjectField _configField;
+
+        static AudioServiceSettingsEditor()
+        {
+            //TODO Run enum generation on startup
+        }
 
         [SettingsProvider]
         public static SettingsProvider CreateSettingsProvider()
@@ -76,6 +82,7 @@ namespace JeanLF.AudioService.Editor
         private static void OnConfigChange(ChangeEvent<UnityEngine.Object> evt)
         {
             _editButton.SetEnabled(evt.newValue);
+            //TODO Run enum generation.
         }
 
         private static void OnEditClick()

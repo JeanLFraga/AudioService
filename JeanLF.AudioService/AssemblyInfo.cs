@@ -4,3 +4,4 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 
 [assembly: InternalsVisibleTo("JeanLF.AudioService.Editor")]
+[assembly: InternalsVisibleTo("JeanLF.AudioService.Tests")]

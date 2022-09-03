@@ -5,19 +5,28 @@ using UnityEngine;
 
 namespace JeanLF.AudioService
 {
-    internal class AudioPool
+    internal class AudioPool : IDisposable
     {
         private readonly Queue<AudioPlayer> _pool = new Queue<AudioPlayer>();
         private readonly Dictionary<string, Queue<AudioPlayer>> _filterPlayers = new Dictionary<string, Queue<AudioPlayer>>();
 
         public AudioPool(AudioConfig config, int poolSize, int filterPool)
         {
+            GameObject parent = new GameObject("AudioPool")
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+            };
+            UnityEngine.Object.DontDestroyOnLoad(parent);
+
             for (int i = 0; i < poolSize; i++)
             {
                 GameObject gameObject = new GameObject($"AudioPlayer {i}")
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                 };
+
+                gameObject.transform.parent = parent.transform;
+                UnityEngine.Object.DontDestroyOnLoad(gameObject);
 
                 AudioPlayer player = gameObject.AddComponent<AudioPlayer>();
                 player.Setup();
@@ -30,12 +39,16 @@ namespace JeanLF.AudioService
             {
                 if (audioEntries[i].Filters.Length > 0)
                 {
+                    _filterPlayers.Add(audioEntries[i].Id, new Queue<AudioPlayer>());
                     for (int j = 0; j < filterPool; j++)
                     {
-                        GameObject gameObject = new GameObject($"FilterAudioPlayer {i}")
+                        GameObject gameObject = new GameObject($"FilterAudioPlayer_{audioEntries[i].Id} {j}")
                         {
                             hideFlags = HideFlags.HideAndDontSave,
                         };
+
+                        gameObject.transform.parent = parent.transform;
+                        UnityEngine.Object.DontDestroyOnLoad(gameObject);
 
                         AudioPlayer player = gameObject.AddComponent<AudioPlayer>();
                         player.Setup(audioEntries[i].Filters);
@@ -73,6 +86,24 @@ namespace JeanLF.AudioService
         public void ReturnToPool(AudioPlayer player)
         {
             _pool.Enqueue(player);
+        }
+
+        public void Dispose()
+        {
+            foreach (AudioPlayer player in _pool)
+            {
+                player.Dispose();
+                UnityEngine.Object.Destroy(player.gameObject);
+            }
+
+            foreach (KeyValuePair<string, Queue<AudioPlayer>> keyValue in _filterPlayers)
+            {
+                foreach (AudioPlayer player in keyValue.Value)
+                {
+                    player.Dispose();
+                    UnityEngine.Object.Destroy(player.gameObject);
+                }
+            }
         }
     }
 }

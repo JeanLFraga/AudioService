@@ -1,9 +1,10 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using UnityEngine;
 
 namespace JeanLF.AudioService
 {
-    public interface IAudioService
+    public interface IAudioService : IDisposable
     {
         AudioPlayer Play(AudioReference audio, AudioPlayerProperties? overrideProperties = null);
         AudioPlayer Play(EntryId entryId, GroupId groupId, AudioPlayerProperties? overrideProperties = null);

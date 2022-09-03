@@ -59,4 +59,5 @@ crashlytics-build.properties
 
 # Misc
 # ====
+*/Generated/
 __*

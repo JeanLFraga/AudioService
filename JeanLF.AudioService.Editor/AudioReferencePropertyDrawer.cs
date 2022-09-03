@@ -129,11 +129,14 @@ namespace JeanLF.AudioService.Editor
 
             EditorGUI.LabelField(labelRect, "/", _labelStyle);
 
-            SerializedProperty entryValueProperty = property.FindPropertyRelative(AudioReference.EntryStringPath);
-            SerializedProperty groupValueProperty = property.FindPropertyRelative(AudioReference.GroupStringPath);
+            SerializedProperty groupStringProperty = property.FindPropertyRelative(AudioReference.GroupStringPath);
+            SerializedProperty groupEnumProperty = property.FindPropertyRelative(AudioReference.GroupEnumPath);
 
-            DrawIdDropdown(groupRect, groupValueProperty, GetGroupsIds());
-            DrawIdDropdown(entryRect, entryValueProperty, GetEntriesIds());
+            SerializedProperty entryStringProperty = property.FindPropertyRelative(AudioReference.EntryStringPath);
+            SerializedProperty entryEnumProperty = property.FindPropertyRelative(AudioReference.EntryEnumPath);
+
+            DrawIdDropdown(groupRect, groupStringProperty, groupEnumProperty, GetGroupsIds());
+            DrawIdDropdown(entryRect, entryStringProperty, entryEnumProperty, GetEntriesIds());
 
             EditorGUI.EndProperty();
         }
@@ -148,16 +151,18 @@ namespace JeanLF.AudioService.Editor
             return Settings.Configuration.AudioEntries.Select(x => x.Id).ToList();
         }
 
-        private void DrawIdDropdown(Rect groupRect, SerializedProperty property, IReadOnlyList<string> items)
+        private void DrawIdDropdown(Rect groupRect, SerializedProperty stringProperty, SerializedProperty enumProperty, IReadOnlyList<string> items)
         {
-            if (EditorGUI.DropdownButton(groupRect, new GUIContent(ObjectNames.NicifyVariableName(property.stringValue)), FocusType.Keyboard))
+            string displayName = enumProperty.enumValueIndex == 0 ? " Invalid" : ObjectNames.NicifyVariableName(stringProperty.stringValue);
+            Texture icon = enumProperty.enumValueIndex == 0 ? EditorGUIUtility.IconContent("CollabError").image : null;
+            if (EditorGUI.DropdownButton(groupRect, new GUIContent(displayName, image: icon), FocusType.Keyboard))
             {
-                ListAdvancedDropdown dropdown = new ListAdvancedDropdown(new AdvancedDropdownState(), property.displayName, items, property.stringValue);
+                ListAdvancedDropdown dropdown = new ListAdvancedDropdown(new AdvancedDropdownState(), stringProperty.displayName, items, stringProperty.stringValue);
                 dropdown.Show(groupRect);
                 dropdown.OnSelection += delegate(string selected)
                 {
-                    property.stringValue = selected;
-                    property.serializedObject.ApplyModifiedProperties();
+                    stringProperty.stringValue = selected;
+                    stringProperty.serializedObject.ApplyModifiedProperties();
                 };
             }
         }

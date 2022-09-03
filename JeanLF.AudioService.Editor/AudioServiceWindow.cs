@@ -61,6 +61,7 @@ namespace JeanLF.AudioService.Editor
 
             _entriesList = root.Q<ReorderableArray>("entries");
             _entriesList.OnDataUpdate += OnEntriesUpdate;
+            _entriesList.OnItemAdd += OnEntryAdd;
 
             _groupList = root.Q<ReorderableArray>("groups");
             _groupList.OnDataUpdate += OnGroupsUpdate;
@@ -71,6 +72,16 @@ namespace JeanLF.AudioService.Editor
             {
                 Initialize(_audioConfig);
             }
+        }
+
+        private void OnEntryAdd()
+        {
+            SerializedProperty arrayProp = _audioConfigSerialized.FindProperty(AudioConfig.EntriesPropertyPath);
+            SerializedProperty itemProp = arrayProp.GetArrayElementAtIndex(arrayProp.arraySize - 1);
+            AudioEntry entry = (AudioEntry)itemProp.GetValue();
+            entry.SetDefaultValues();
+            itemProp.SetValueNoRecord(entry);
+            itemProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private void BindControls()
@@ -117,6 +128,8 @@ namespace JeanLF.AudioService.Editor
 
                 return list;
             }
+
+            //TODO Move enum generation to utility class
 
             StreamWriter file = new StreamWriter(AudioServiceEditorUtils.EntriesFilePath,false);
             SourceFile source = WriteEnum(nameof(EntryId), RemoveDuplicates(_audioConfig.AudioEntries.Select(x => x.Id)));
