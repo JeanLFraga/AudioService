@@ -2,6 +2,7 @@ using Cysharp.Threading.Tasks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Audio;
@@ -10,7 +11,7 @@ namespace JeanLF.AudioService
 {
     public sealed partial class AudioService : IAudioService
     {
-        private readonly AudioConfig _configuration;
+        private readonly AudioDatabase _database;
         private readonly AudioPool _pool;
         private readonly Dictionary<GroupId, AudioPlayerGroup> _audioGroups = new();
         private readonly Dictionary<EntryId, AudioEntry> _audioEntries = new();
@@ -19,23 +20,23 @@ namespace JeanLF.AudioService
         public AudioService()
         {
             AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(AudioServiceSettings.FileName);
-            _configuration = settings.Configuration;
+            _database = settings.Configuration;
 
-            if (_configuration == null)
+            if (_database == null)
             {
                 throw new NullReferenceException(@"Audio Service configuration can't be null.\n
                 You can set the configuration on the service settings in <b>Project Settings/JeanLF/Audio Service</b>");
             }
 
-            _pool = new AudioPool(_configuration, settings.PoolSize, settings.FilteredSources);
-            IReadOnlyList<AudioGroup> groups = _configuration.AudioGroups;
+            _pool = new AudioPool(_database, settings.PoolSettings);
+            IReadOnlyList<AudioGroup> groups = _database.AudioGroups;
 
             for (int i = 0; i < groups.Count; i++)
             {
                 _audioGroups.Add(groups[i].ConvertedId, new AudioPlayerGroup(groups[i].Id, groups[i].MixerGroup, _pool));
             }
 
-            IReadOnlyList<AudioEntry> entries = _configuration.AudioEntries;
+            IReadOnlyList<AudioEntry> entries = _database.AudioEntries;
             for (int i = 0; i < entries.Count; i++)
             {
                 _audioEntries.Add(entries[i].ConvertedId, entries[i]);
@@ -49,6 +50,11 @@ namespace JeanLF.AudioService
 
         public AudioPlayer Play(EntryId entryId, GroupId groupId, AudioPlayerProperties? overrideProperties = null)
         {
+            if (entryId == EntryId.Invalid || groupId == GroupId.Invalid)
+            {
+                throw new InvalidEnumArgumentException();
+            }
+
             AudioEntry entry = _audioEntries[entryId];
             AudioPlayer player = _audioGroups[groupId].PlayAudio(entry, overrideProperties == null ? entry.AudioProperties : overrideProperties.Value);
             return player;
@@ -61,6 +67,11 @@ namespace JeanLF.AudioService
 
         public void Pause(EntryId entryId, GroupId groupId)
         {
+            if (entryId == EntryId.Invalid || groupId == GroupId.Invalid)
+            {
+                throw new InvalidEnumArgumentException();
+            }
+
             _audioGroups[groupId].PauseAudio(entryId);
         }
 
@@ -71,16 +82,31 @@ namespace JeanLF.AudioService
 
         public void Resume(EntryId entryId, GroupId groupId)
         {
+            if (entryId == EntryId.Invalid || groupId == GroupId.Invalid)
+            {
+                throw new InvalidEnumArgumentException();
+            }
+
             _audioGroups[groupId].ResumeAudio(entryId);
         }
 
         public void PauseGroup(GroupId groupId)
         {
+            if (groupId == GroupId.Invalid)
+            {
+                throw new InvalidEnumArgumentException();
+            }
+
             _audioGroups[groupId].PauseAll();
         }
 
         public void ResumeGroup(GroupId groupId)
         {
+            if (groupId == GroupId.Invalid)
+            {
+                throw new InvalidEnumArgumentException();
+            }
+
             _audioGroups[groupId].Resume();
         }
 
@@ -91,6 +117,11 @@ namespace JeanLF.AudioService
 
         public void Stop(EntryId entryId, GroupId groupId)
         {
+            if (entryId == EntryId.Invalid || groupId == GroupId.Invalid)
+            {
+                throw new InvalidEnumArgumentException();
+            }
+
             _audioGroups[groupId].StopAudio(entryId);
         }
 

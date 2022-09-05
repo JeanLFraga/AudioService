@@ -20,17 +20,17 @@ namespace JeanLF.AudioService.Editor
         private static readonly Vector2 MinWindowSize = new Vector2(350f, 300);
         private readonly Regex _enumMemberRegex = new Regex("(^[^A-Za-z]+)|([^a-zA-Z0-9])");
 
-        private AudioConfig _audioConfig;
+        private AudioDatabase _audioDatabase;
         private SerializedObject _audioConfigSerialized;
 
         private ReorderableArray _entriesList;
         private ReorderableArray _groupList;
         private PropertyField _mixerField;
 
-        public static void OpenConfigurationWindow(AudioConfig config)
+        public static void OpenConfigurationWindow(AudioDatabase database)
         {
             AudioServiceWindow wnd = GetWindow<AudioServiceWindow>("Audio Service Window");
-            wnd.Initialize(config);
+            wnd.Initialize(database);
             wnd.minSize = MinWindowSize;
         }
 
@@ -41,10 +41,10 @@ namespace JeanLF.AudioService.Editor
             wnd.Close();
         }
 
-        internal void Initialize(AudioConfig config)
+        internal void Initialize(AudioDatabase database)
         {
-            _audioConfig = config;
-            _audioConfigSerialized = new SerializedObject(_audioConfig);
+            _audioDatabase = database;
+            _audioConfigSerialized = new SerializedObject(_audioDatabase);
             BindControls();
             GenerateEnums();
         }
@@ -68,15 +68,15 @@ namespace JeanLF.AudioService.Editor
 
             _mixerField = root.Q<PropertyField>("mixer");
 
-            if (_audioConfig != null)
+            if (_audioDatabase != null)
             {
-                Initialize(_audioConfig);
+                Initialize(_audioDatabase);
             }
         }
 
         private void OnEntryAdd()
         {
-            SerializedProperty arrayProp = _audioConfigSerialized.FindProperty(AudioConfig.EntriesPropertyPath);
+            SerializedProperty arrayProp = _audioConfigSerialized.FindProperty(AudioDatabase.EntriesPropertyPath);
             SerializedProperty itemProp = arrayProp.GetArrayElementAtIndex(arrayProp.arraySize - 1);
             AudioEntry entry = (AudioEntry)itemProp.GetValue();
             entry.SetDefaultValues();
@@ -86,9 +86,9 @@ namespace JeanLF.AudioService.Editor
 
         private void BindControls()
         {
-            _entriesList.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.EntriesPropertyPath));
-            _groupList.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.GroupPropertyPath));
-            _mixerField.BindProperty(_audioConfigSerialized.FindProperty(AudioConfig.MixerProperty));
+            _entriesList.BindProperty(_audioConfigSerialized.FindProperty(AudioDatabase.EntriesPropertyPath));
+            _groupList.BindProperty(_audioConfigSerialized.FindProperty(AudioDatabase.GroupPropertyPath));
+            _mixerField.BindProperty(_audioConfigSerialized.FindProperty(AudioDatabase.MixerProperty));
         }
 
         private void CleanupIdStrings(string arrayPath, string stringPath)
@@ -106,14 +106,14 @@ namespace JeanLF.AudioService.Editor
 
         private void OnGroupsUpdate()
         {
-            CleanupIdStrings(AudioConfig.GroupPropertyPath, AudioGroup.IdPropertyPath);
+            CleanupIdStrings(AudioDatabase.GroupPropertyPath, AudioGroup.IdPropertyPath);
 
             GenerateEnums();
         }
 
         private void OnEntriesUpdate()
         {
-            CleanupIdStrings(AudioConfig.EntriesPropertyPath, AudioEntry.IdPropertyPath);
+            CleanupIdStrings(AudioDatabase.EntriesPropertyPath, AudioEntry.IdPropertyPath);
 
             GenerateEnums();
         }
@@ -129,42 +129,15 @@ namespace JeanLF.AudioService.Editor
                 return list;
             }
 
-            //TODO Move enum generation to utility class
+            CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
+                                  nameof(EntryId),
+                                  RemoveDuplicates(_audioDatabase.AudioEntries.Select(x => x.Id)));
 
-            StreamWriter file = new StreamWriter(AudioServiceEditorUtils.EntriesFilePath,false);
-            SourceFile source = WriteEnum(nameof(EntryId), RemoveDuplicates(_audioConfig.AudioEntries.Select(x => x.Id)));
-            file.Write(source.ToString());
-            file.Close();
-
-            file = new StreamWriter(AudioServiceEditorUtils.GroupFilePath, false);
-            source = WriteEnum(nameof(GroupId), RemoveDuplicates(_audioConfig.AudioGroups.Select(x => x.Id)));
-            file.Write(source.ToString());
-            file.Close();
+            CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
+                                  nameof(GroupId),
+                                  RemoveDuplicates(_audioDatabase.AudioGroups.Select(x => x.Id)));
 
             AssetDatabase.Refresh();
-        }
-
-        private SourceFile WriteEnum(string enumName, IEnumerable<string> members)
-        {
-            SourceFile sourceFile = new SourceFile();
-            using (new NamespaceScope(sourceFile, AudioServiceEditorUtils.AudioServiceNamespace))
-            {
-                sourceFile.AppendLine($"public enum {enumName}");
-
-                using (new BracesScope(sourceFile))
-                {
-                    foreach (string member in members)
-                    {
-                        if (string.IsNullOrWhiteSpace(member))
-                        {
-                            continue;
-                        }
-                        sourceFile.AppendLine($"{member},");
-                    }
-                }
-            }
-
-            return sourceFile;
         }
 
         private static string CapitalizeFirstLetter(string text)

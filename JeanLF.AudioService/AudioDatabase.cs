@@ -7,7 +7,7 @@ using UnityEngine.Audio;
 namespace JeanLF.AudioService
 {
     [CreateAssetMenu(menuName = "JeanLF Audio Service/Audio Configuration", fileName = "AudioConfig")]
-    public sealed class AudioConfig : ScriptableObject
+    public sealed class AudioDatabase : ScriptableObject
     {
 #if UNITY_EDITOR
         internal static readonly string MixerProperty = nameof(_mixer);

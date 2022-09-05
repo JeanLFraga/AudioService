@@ -13,5 +13,7 @@
         </ui:VisualElement>
         <uie:PropertyField name="poolSize" tooltip="The count of AudioSources for simultaneous uses of non-containing filter AudioEntry" />
         <uie:PropertyField name="filtersPoolSize" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
+        <uie:PropertyField name="expandCount" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
+        <uie:PropertyField name="shrinkCount" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
     </ui:VisualElement>
 </ui:UXML>

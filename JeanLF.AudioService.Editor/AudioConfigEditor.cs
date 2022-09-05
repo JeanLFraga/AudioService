@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace JeanLF.AudioService.Editor
 {
-    [CustomEditor(typeof(AudioConfig))]
+    [CustomEditor(typeof(AudioDatabase))]
     public sealed class AudioConfigEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
@@ -13,7 +13,7 @@ namespace JeanLF.AudioService.Editor
 
             if (GUILayout.Button("Edit"))
             {
-                AudioServiceWindow.OpenConfigurationWindow((AudioConfig)target);
+                AudioServiceWindow.OpenConfigurationWindow((AudioDatabase)target);
             }
         }
     }

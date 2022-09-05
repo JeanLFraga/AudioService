@@ -9,32 +9,32 @@ namespace JeanLF.AudioService
         internal const string FileName = "JeanLF_AS_Settings";
 
 #if UNITY_EDITOR
-        internal const string ConfigMemberPath = nameof(_config);
-        internal const string PoolSizeMemberPath = nameof(_poolSize);
-        internal const string FilterCountMemberPath = nameof(_filteredSources);
+        internal const string DatabaseName = nameof(_database);
+        internal const string PoolSettingsName = nameof(_poolSettings);
+        internal const string PoolSizeName = nameof(JeanLF.AudioService.PoolSettings.PlayerPoolCount);
+        internal const string FilterCountName = nameof(JeanLF.AudioService.PoolSettings.FilterPlayerPoolCount);
+        internal const string ExpandCountName = nameof(JeanLF.AudioService.PoolSettings.ExpandCount);
+        internal const string ShrinkCountName = nameof(JeanLF.AudioService.PoolSettings.ShrinkCount);
 #endif
         [SerializeField]
-        private AudioConfig _config;
+        private AudioDatabase _database;
         [SerializeField]
-        private int _poolSize;
-        [SerializeField]
-        private int _filteredSources;
+        private PoolSettings _poolSettings;
 
-        internal bool HasConfiguration => _config != null;
+        internal bool HasConfiguration => _database != null;
 
         public AudioServiceSettings()
         {
-            _poolSize = 15;
-            _filteredSources = 3;
+            _poolSettings = new PoolSettings(15, 3, 2, 2);
         }
 
-        public int PoolSize => _poolSize;
-        public int FilteredSources => _filteredSources;
-        public AudioConfig Configuration => _config;
+        internal PoolSettings PoolSettings => _poolSettings;
+        public AudioDatabase Configuration => _database;
 
-        internal void OverrideConfiguration(AudioConfig config)
+
+        internal void OverrideConfiguration(AudioDatabase database)
         {
-            _config = config;
+            _database = database;
         }
     }
 }

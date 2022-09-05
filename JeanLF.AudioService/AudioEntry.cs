@@ -54,19 +54,10 @@ namespace JeanLF.AudioService
         public AudioPlayerProperties AudioProperties => _audioProperties;
         public IFilterProperty[] Filters => _filters;
         public bool HasFilters => _filters.Length > 0;
+
         public void SetDefaultValues()
         {
             _audioProperties = AudioPlayerProperties.DefaultValues;
-        }
-
-        //TODO Remove.
-        [ContextMenu("Debug Filters")]
-        private void DebugFilters()
-        {
-            for (int i = 0; i < _filters.Length; i++)
-            {
-                Debug.Log(_filters[i]);
-            }
         }
     }
 }

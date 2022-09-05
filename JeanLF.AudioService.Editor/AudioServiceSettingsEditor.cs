@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -17,7 +18,20 @@ namespace JeanLF.AudioService.Editor
 
         static AudioServiceSettingsEditor()
         {
-            //TODO Run enum generation on startup
+            AudioServiceSettings settings = GetOrCreateSettings();
+
+            if (settings.Configuration == null)
+            {
+                return;
+            }
+
+            CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
+                                 nameof(EntryId),
+                                 settings.Configuration.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
+
+            CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
+                                 nameof(GroupId),
+                                 settings.Configuration.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
         }
 
         [SettingsProvider]
@@ -54,7 +68,7 @@ namespace JeanLF.AudioService.Editor
         private static void DrawSettings(string searchContext, VisualElement rootElement)
         {
             _settings = new SerializedObject(GetOrCreateSettings());
-            SerializedProperty configProp = _settings.FindProperty(AudioServiceSettings.ConfigMemberPath);
+            SerializedProperty configProp = _settings.FindProperty(AudioServiceSettings.DatabaseName);
 
             VisualTreeAsset visualTree =
                 AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{AudioServiceEditorUtils.EditorUIPath}/AudioServiceSettings.uxml");
@@ -72,22 +86,43 @@ namespace JeanLF.AudioService.Editor
             _configField.BindProperty(configProp);
             _configField.RegisterValueChangedCallback(OnConfigChange);
 
+            SerializedProperty poolProp = _settings.FindProperty(AudioServiceSettings.PoolSettingsName);
+
             PropertyField poolField = rootElement.Q<PropertyField>("poolSize");
-            poolField.BindProperty(_settings.FindProperty(AudioServiceSettings.PoolSizeMemberPath));
+            poolField.BindProperty(poolProp.FindPropertyRelative(AudioServiceSettings.PoolSizeName));
 
             PropertyField filterField = rootElement.Q<PropertyField>("filtersPoolSize");
-            filterField.BindProperty(_settings.FindProperty(AudioServiceSettings.FilterCountMemberPath));
+            filterField.BindProperty(poolProp.FindPropertyRelative(AudioServiceSettings.FilterCountName));
+
+            PropertyField expandField = rootElement.Q<PropertyField>("expandCount");
+            expandField.BindProperty(poolProp.FindPropertyRelative(AudioServiceSettings.ExpandCountName));
+
+            PropertyField shrinkField = rootElement.Q<PropertyField>("shrinkCount");
+            shrinkField.BindProperty(poolProp.FindPropertyRelative(AudioServiceSettings.ShrinkCountName));
         }
 
         private static void OnConfigChange(ChangeEvent<UnityEngine.Object> evt)
         {
-            _editButton.SetEnabled(evt.newValue);
-            //TODO Run enum generation.
+            AudioDatabase database = (AudioDatabase)evt.newValue;
+            _editButton.SetEnabled(database);
+
+            if (evt.newValue == null)
+            {
+                return;
+            }
+
+            CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
+                                 nameof(EntryId),
+                                 database.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
+
+            CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
+                                 nameof(GroupId),
+                                 database.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
         }
 
         private static void OnEditClick()
         {
-            AudioServiceWindow.OpenConfigurationWindow((AudioConfig)_configField.value);
+            AudioServiceWindow.OpenConfigurationWindow((AudioDatabase)_configField.value);
         }
 
         private static void OnAddClick()
@@ -98,10 +133,10 @@ namespace JeanLF.AudioService.Editor
             const string extension = "asset";
 
             string path = EditorUtility.SaveFilePanelInProject(panelTitle, defaultName, extension, message);
-            AudioConfig config = ScriptableObject.CreateInstance<AudioConfig>();
-            AssetDatabase.CreateAsset(config, path);
+            AudioDatabase database = ScriptableObject.CreateInstance<AudioDatabase>();
+            AssetDatabase.CreateAsset(database, path);
 
-            _configField.value = config;
+            _configField.value = database;
         }
     }
 }
