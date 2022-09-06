@@ -20,13 +20,8 @@ namespace JeanLF.AudioService
 
         private readonly Queue<AudioPlayer> _pool = new Queue<AudioPlayer>();
         private readonly Dictionary<EntryId, FilterEntry> _filterPlayers = new Dictionary<EntryId, FilterEntry>();
-        private HashSet<AudioEntry> _entries;
-
-        private PoolSettings _settings;
-
-        private int _poolSize;
-        private int _filterPool;
-        private GameObject _poolParent;
+        private readonly GameObject _poolParent;
+        private readonly PoolSettings _settings;
 
         private bool ShouldExpand => _settings.ExpandCount > 0;
 
@@ -41,7 +36,7 @@ namespace JeanLF.AudioService
 
             UnityEngine.Object.DontDestroyOnLoad(_poolParent);
 
-            SpawnPlayer(_poolSize);
+            SpawnPlayer(_settings.PlayerPoolCount);
 
             IReadOnlyList<AudioEntry> audioEntries = database.AudioEntries;
 
@@ -50,7 +45,7 @@ namespace JeanLF.AudioService
                 if (audioEntries[i].Filters.Length > 0)
                 {
                     _filterPlayers.Add(audioEntries[i].ConvertedId, new FilterEntry(audioEntries[i]));
-                    SpawnFilteredPlayer(_filterPool, audioEntries[i]);
+                    SpawnFilteredPlayer(_settings.FilterPlayerPoolCount, audioEntries[i]);
                 }
             }
         }

@@ -1,114 +1,86 @@
+using Cysharp.Threading.Tasks;
 using JeanLF.AudioService;
+using JeanLF.AudioService.Tests;
 using NUnit.Framework;
 using System;
-using System.ComponentModel;
-using System.Linq;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-#if UNITY_EDITOR
-using JeanLF.AudioService.Editor;
-using UnityEditor;
-#endif
-
-public class AudioPlayerTests : IPrebuildSetup, IPostBuildCleanup
+namespace JeanLF.AudioService.Tests
 {
-    private IAudioService _audioService;
-    private static AudioDatabase _originalDatabase;
-
-    public void Setup()
+    [TestFixture(TestOf = typeof(AudioPlayer))]
+    public class AudioPlayerTests : IPrebuildSetup, IPostBuildCleanup
     {
-        AudioDatabase database = Resources.Load<AudioDatabase>("JeanLF_TestConfig");
-#if UNITY_EDITOR
-        CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
-                             nameof(EntryId),
-                             database.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
+        private IAudioService _audioService;
 
-        CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
-                             nameof(GroupId),
-                             database.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
+        public void Setup()
+        {
+            AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(TestUtility.AudioSettingsFile);
+            TestUtility.WriteEntryEnums(settings.Database);
+        }
 
-        AssetDatabase.Refresh();
-#endif
-    }
+        public void Cleanup()
+        {
+            AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(AudioServiceSettings.FileName);
+            TestUtility.WriteEntryEnums(settings.Database);
+        }
 
-    public void Cleanup()
-    {
-#if UNITY_EDITOR
-        CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
-                             nameof(EntryId),
-                             _originalDatabase.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
+        [OneTimeSetUp]
+        public void SetupService()
+        {
+            AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(TestUtility.AudioSettingsFile);
+            _audioService = new AudioService(settings);
+        }
 
-        CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
-                             nameof(GroupId),
-                             _originalDatabase.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
+        [OneTimeTearDown]
+        public void Teardown()
+        {
+            Debug.Log(_audioService);
+            _audioService.Dispose();
+        }
 
-        AssetDatabase.Refresh();
-#endif
-        _originalDatabase = null;
-    }
+        [Test]
+        public void PlayAudioSuccessfully()
+        {
+            EntryId entryId = (EntryId)Enum.GetValues(typeof(EntryId)).GetValue(1);
+            GroupId groupId = (GroupId)Enum.GetValues(typeof(GroupId)).GetValue(1);
+            Assert.DoesNotThrow(() => _audioService.Play(entryId, groupId));
+        }
 
-    [OneTimeSetUp]
-    public void SetupAudioService()
-    {
-        AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(AudioServiceSettings.FileName);
-        AudioDatabase database = Resources.Load<AudioDatabase>("JeanLF_TestConfig");
-        _originalDatabase = settings.Configuration;
-        settings.OverrideConfiguration(database);
-        _audioService = new AudioService();
-    }
+        [UnityTest]
+        public IEnumerator PlayAwaitSuccessful()
+        {
+            return UniTask.ToCoroutine(async () =>
+            {
+                EntryId entryId = (EntryId)Enum.GetValues(typeof(EntryId)).GetValue(1);
+                GroupId groupId = (GroupId)Enum.GetValues(typeof(GroupId)).GetValue(1);
+                float time = Time.realtimeSinceStartup;
+                await _audioService.Play(entryId, groupId);
+                Assert.Greater(Time.realtimeSinceStartup, time);
+            });
+        }
 
-    [OneTimeTearDown]
-    public void Teardown()
-    {
-        _audioService.Dispose();
-        AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(AudioServiceSettings.FileName);
-        settings.OverrideConfiguration(_originalDatabase);
-    }
+        [Test]
+        public void PlayerAttachesToTransform()
+        {
+            EntryId entryId = (EntryId)Enum.GetValues(typeof(EntryId)).GetValue(1);
+            GroupId groupId = (GroupId)Enum.GetValues(typeof(GroupId)).GetValue(1);
+            GameObject gameObject = new GameObject();
+            AudioPlayer audioPlayer = _audioService.Play(entryId, groupId).Attach(gameObject.transform);
+            Assert.True(audioPlayer.transform.IsChildOf(gameObject.transform));
+            UnityEngine.Object.Destroy(gameObject);
+        }
 
-    [Test]
-    public void PlayAudioSuccessfully()
-    {
-        EntryId entryId = (EntryId)Enum.GetValues(typeof(EntryId)).GetValue(1);
-        GroupId groupId = (GroupId)Enum.GetValues(typeof(GroupId)).GetValue(1);
-        Assert.DoesNotThrow( () => _audioService.Play(entryId, groupId));
-    }
-
-    [Test]
-    public void PlayerAttachesToTransform()
-    {
-        EntryId entryId = (EntryId)Enum.GetValues(typeof(EntryId)).GetValue(1);
-        GroupId groupId = (GroupId)Enum.GetValues(typeof(GroupId)).GetValue(1);
-        GameObject gameObject = new GameObject();
-        AudioPlayer audioPlayer = _audioService.Play(entryId, groupId).Attach(gameObject.transform);
-        Assert.True(audioPlayer.transform.IsChildOf(gameObject.transform));
-        UnityEngine.Object.Destroy(gameObject);
-    }
-
-    [Test]
-    public void PlayerAttachResetOrigin()
-    {
-        EntryId entryId = (EntryId)Enum.GetValues(typeof(EntryId)).GetValue(1);
-        GroupId groupId = (GroupId)Enum.GetValues(typeof(GroupId)).GetValue(1);
-        GameObject gameObject = new GameObject();
-        AudioPlayer audioPlayer = _audioService.Play(entryId, groupId).LocalPosition(new Vector3(1,1,1));
-        audioPlayer.Attach(gameObject.transform);
-        Assert.AreEqual(Vector3.zero,audioPlayer.transform.localPosition);
-    }
-
-    [Test]
-    public void PlayBlockInvalidEntry()
-    {
-        EntryId entryId = (EntryId)Enum.GetValues(typeof(EntryId)).GetValue(0);
-        GroupId groupId = (GroupId)Enum.GetValues(typeof(GroupId)).GetValue(1);
-        Assert.Throws<InvalidEnumArgumentException>( () => _audioService.Play(entryId, groupId));
-    }
-
-    [Test]
-    public void PlayBlockInvalidGroup()
-    {
-        EntryId entryId = (EntryId)Enum.GetValues(typeof(EntryId)).GetValue(1);
-        GroupId groupId = (GroupId)Enum.GetValues(typeof(GroupId)).GetValue(0);
-        Assert.Throws<InvalidEnumArgumentException>( () => _audioService.Play(entryId, groupId));
+        [Test]
+        public void PlayerAttachResetOrigin()
+        {
+            EntryId entryId = (EntryId)Enum.GetValues(typeof(EntryId)).GetValue(1);
+            GroupId groupId = (GroupId)Enum.GetValues(typeof(GroupId)).GetValue(1);
+            GameObject gameObject = new GameObject();
+            AudioPlayer audioPlayer = _audioService.Play(entryId, groupId).LocalPosition(new Vector3(1, 1, 1));
+            audioPlayer.Attach(gameObject.transform);
+            Assert.AreEqual(Vector3.zero, audioPlayer.transform.localPosition);
+        }
     }
 }

@@ -11,8 +11,6 @@ namespace JeanLF.AudioService
     [System.Serializable]
     internal struct AudioEntry
     {
-        internal static readonly AudioPlayerProperties AudioPropertyDefaultValues = new AudioPlayerProperties(volume: 1f);
-
 #if UNITY_EDITOR
         internal static readonly string IdPropertyPath = nameof(_id);
         internal static readonly string FilterPropertyName = nameof(_filters);

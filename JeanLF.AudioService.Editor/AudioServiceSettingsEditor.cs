@@ -20,18 +20,18 @@ namespace JeanLF.AudioService.Editor
         {
             AudioServiceSettings settings = GetOrCreateSettings();
 
-            if (settings.Configuration == null)
+            if (settings.Database == null)
             {
                 return;
             }
 
             CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
                                  nameof(EntryId),
-                                 settings.Configuration.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
+                                 settings.Database.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
 
             CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
                                  nameof(GroupId),
-                                 settings.Configuration.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
+                                 settings.Database.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
         }
 
         [SettingsProvider]
@@ -89,16 +89,16 @@ namespace JeanLF.AudioService.Editor
             SerializedProperty poolProp = _settings.FindProperty(AudioServiceSettings.PoolSettingsName);
 
             PropertyField poolField = rootElement.Q<PropertyField>("poolSize");
-            poolField.BindProperty(poolProp.FindPropertyRelative(AudioServiceSettings.PoolSizeName));
+            poolField.BindProperty(poolProp.FindPropertyRelative(PoolSettings.PlayerPoolCountName));
 
             PropertyField filterField = rootElement.Q<PropertyField>("filtersPoolSize");
-            filterField.BindProperty(poolProp.FindPropertyRelative(AudioServiceSettings.FilterCountName));
+            filterField.BindProperty(poolProp.FindPropertyRelative(PoolSettings.FilterPlayerCountName));
 
             PropertyField expandField = rootElement.Q<PropertyField>("expandCount");
-            expandField.BindProperty(poolProp.FindPropertyRelative(AudioServiceSettings.ExpandCountName));
+            expandField.BindProperty(poolProp.FindPropertyRelative(PoolSettings.ExpandCountName));
 
             PropertyField shrinkField = rootElement.Q<PropertyField>("shrinkCount");
-            shrinkField.BindProperty(poolProp.FindPropertyRelative(AudioServiceSettings.ShrinkCountName));
+            shrinkField.BindProperty(poolProp.FindPropertyRelative(PoolSettings.ShrinkCountName));
         }
 
         private static void OnConfigChange(ChangeEvent<UnityEngine.Object> evt)

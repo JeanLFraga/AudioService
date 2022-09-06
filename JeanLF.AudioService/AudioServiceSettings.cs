@@ -11,10 +11,6 @@ namespace JeanLF.AudioService
 #if UNITY_EDITOR
         internal const string DatabaseName = nameof(_database);
         internal const string PoolSettingsName = nameof(_poolSettings);
-        internal const string PoolSizeName = nameof(JeanLF.AudioService.PoolSettings.PlayerPoolCount);
-        internal const string FilterCountName = nameof(JeanLF.AudioService.PoolSettings.FilterPlayerPoolCount);
-        internal const string ExpandCountName = nameof(JeanLF.AudioService.PoolSettings.ExpandCount);
-        internal const string ShrinkCountName = nameof(JeanLF.AudioService.PoolSettings.ShrinkCount);
 #endif
         [SerializeField]
         private AudioDatabase _database;
@@ -29,12 +25,18 @@ namespace JeanLF.AudioService
         }
 
         internal PoolSettings PoolSettings => _poolSettings;
-        public AudioDatabase Configuration => _database;
+        public AudioDatabase Database => _database;
 
-
-        internal void OverrideConfiguration(AudioDatabase database)
+#if UNITY_INCLUDE_TESTS
+        internal void OverrideDatabase(AudioDatabase database)
         {
             _database = database;
         }
+
+        internal void OverridePoolSettings(PoolSettings settings)
+        {
+            _poolSettings = settings;
+        }
     }
+#endif
 }

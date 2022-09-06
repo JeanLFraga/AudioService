@@ -143,12 +143,12 @@ namespace JeanLF.AudioService.Editor
 
         private IReadOnlyList<string> GetGroupsIds()
         {
-            return Settings.Configuration.AudioGroups.Select(x => x.Id).ToList();
+            return Settings.Database.AudioGroups.Select(x => x.Id).ToList();
         }
 
         private IReadOnlyList<string> GetEntriesIds()
         {
-            return Settings.Configuration.AudioEntries.Select(x => x.Id).ToList();
+            return Settings.Database.AudioEntries.Select(x => x.Id).ToList();
         }
 
         private void DrawIdDropdown(Rect groupRect, SerializedProperty stringProperty, SerializedProperty enumProperty, IReadOnlyList<string> items)

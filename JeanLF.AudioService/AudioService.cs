@@ -20,7 +20,32 @@ namespace JeanLF.AudioService
         public AudioService()
         {
             AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(AudioServiceSettings.FileName);
-            _database = settings.Configuration;
+            _database = settings.Database;
+
+            if (_database == null)
+            {
+                throw new NullReferenceException(@"Audio Service configuration can't be null.\n
+                You can set the configuration on the service settings in <b>Project Settings/JeanLF/Audio Service</b>");
+            }
+
+            _pool = new AudioPool(_database, settings.PoolSettings);
+            IReadOnlyList<AudioGroup> groups = _database.AudioGroups;
+
+            for (int i = 0; i < groups.Count; i++)
+            {
+                _audioGroups.Add(groups[i].ConvertedId, new AudioPlayerGroup(groups[i].Id, groups[i].MixerGroup, _pool));
+            }
+
+            IReadOnlyList<AudioEntry> entries = _database.AudioEntries;
+            for (int i = 0; i < entries.Count; i++)
+            {
+                _audioEntries.Add(entries[i].ConvertedId, entries[i]);
+            }
+        }
+
+        internal AudioService(AudioServiceSettings settings)
+        {
+            _database = settings.Database;
 
             if (_database == null)
             {

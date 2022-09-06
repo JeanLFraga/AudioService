@@ -15,15 +15,16 @@ namespace JeanLF.AudioService
     {
         private AudioSource _audioSource;
         private Dictionary<Type, Component> _filters;
-        private AudioEntry _currentEntry;
+        private AudioEntry? _currentEntry;
         private Transform _cachedTransform;
 
-        internal Action onKill;
+        internal Action OnKill;
 
-        public EntryId CurrentId => _currentEntry.ConvertedId;
+        public EntryId CurrentId => _currentEntry?.ConvertedId ?? EntryId.Invalid;
+
         public bool IsPaused { get; private set; }
-        public bool IsPlaying => _audioSource.isPlaying;
-        internal bool IsActive => _audioSource.isPlaying || IsPaused;
+        public bool IsPlaying => _audioSource.isPlaying && !IsPaused;
+        internal bool IsActive => _currentEntry.HasValue;
 
         public AudioPlayer Attach(Transform parent)
         {
@@ -65,26 +66,27 @@ namespace JeanLF.AudioService
 
         public void Dispose()
         {
-            for (int i = 0; i < _currentEntry.Clips.Length; i++)
+            if (_currentEntry.HasValue)
             {
-                if (_currentEntry.Clips[i].Asset != null)
+                for (int i = 0; i < _currentEntry.Value.Clips.Length; i++)
                 {
-                    _currentEntry.Clips[i].ReleaseAsset();
+                    if (_currentEntry.Value.Clips[i].Asset != null)
+                    {
+                        _currentEntry.Value.Clips[i].ReleaseAsset();
+                    }
                 }
             }
 
             _cachedTransform.position = Vector3.zero;
             _cachedTransform.parent = null;
             IsPaused = false;
-
-            onKill?.Invoke();
+            _audioSource.Stop();
         }
 
         internal void Setup()
         {
             _audioSource = GetComponent<AudioSource>();
             _cachedTransform = transform;
-            
         }
 
         internal void Setup(IFilterProperty[] filters)
@@ -149,11 +151,15 @@ namespace JeanLF.AudioService
                     break;
                 }
             }
+
+            _currentEntry = null;
+            OnKill?.Invoke();
         }
 
         internal void Stop()
         {
             _audioSource.Stop();
+            _currentEntry = null;
         }
 
         private void SetAudioProperties(AudioPlayerProperties properties)

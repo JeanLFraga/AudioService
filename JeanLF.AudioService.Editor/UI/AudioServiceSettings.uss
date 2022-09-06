@@ -20,3 +20,27 @@
     -unity-slice-bottom: 0;
     -unity-background-scale-mode: scale-to-fit;
 }
+
+.settings-box {
+    background-color: var(--unity-colors-helpbox-background);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-left-color: rgba(35, 35, 35, 255);
+    border-right-color: rgba(35, 35, 35, 255);
+    border-top-color: rgba(35, 35, 35, 255);
+    border-bottom-color: rgba(35, 35, 35, 255);
+    margin-left: 4px;
+    margin-right: 4px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    padding-left: 2px;
+    padding-right: 2px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}

@@ -1,9 +1,9 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="AudioServiceSettings.uss" />
-    <ui:VisualElement class="settings-container">
+    <ui:VisualElement name="VisualElement" class="settings-container">
         <ui:Label text="Audio Service" display-tooltip-when-elided="true" class="settings-header" />
         <ui:VisualElement style="flex-direction: row;">
-            <uie:ObjectField label="Audio Configuration" type="JeanLF.AudioService.AudioConfig, JeanLF.AudioService" allow-scene-objects="false" tooltip="The configuration used in the service." name="configObject" class="settings-control" style="flex-shrink: 1; flex-grow: 1;" />
+            <uie:ObjectField label="Audio Configuration" allow-scene-objects="false" tooltip="The configuration used in the service." name="configObject" type="JeanLF.AudioService.AudioDatabase, JeanLF.AudioService" class="settings-control" style="flex-shrink: 1; flex-grow: 1;" />
             <ui:Button display-tooltip-when-elided="true" name="createButton" style="width: 20px;">
                 <ui:VisualElement style="flex-direction: column; height: 16px; background-image: url(&apos;/Packages/com.jeanlf.audioservice/JeanLF.AudioService.Editor/UI/Icons/d_Toolbar Plus@2x.png&apos;); -unity-background-scale-mode: scale-to-fit; flex-grow: 1; width: 12px; left: -3px;" />
             </ui:Button>
@@ -11,9 +11,12 @@
                 <ui:VisualElement style="flex-direction: column; height: 16px; background-image: url(&apos;/Packages/com.jeanlf.audioservice/JeanLF.AudioService.Editor/UI/Icons/d_CustomTool@2x.png&apos;); -unity-background-scale-mode: scale-to-fit; flex-grow: 1; width: 14px; left: -4px;" />
             </ui:Button>
         </ui:VisualElement>
-        <uie:PropertyField name="poolSize" tooltip="The count of AudioSources for simultaneous uses of non-containing filter AudioEntry" />
-        <uie:PropertyField name="filtersPoolSize" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
-        <uie:PropertyField name="expandCount" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
-        <uie:PropertyField name="shrinkCount" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
+        <ui:VisualElement class="settings-box" style="margin-left: 3px; margin-right: 3px; margin-top: 1px; margin-bottom: 1px;">
+            <ui:Label text="Pool Settings" display-tooltip-when-elided="true" style="white-space: normal; margin-left: 3px; -unity-text-align: upper-left; -unity-font-style: bold; font-size: 14px;" />
+            <uie:PropertyField name="poolSize" tooltip="The count of AudioSources for simultaneous uses of non-containing filter AudioEntry" />
+            <uie:PropertyField name="filtersPoolSize" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
+            <uie:PropertyField name="expandCount" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
+            <uie:PropertyField name="shrinkCount" tooltip="The count of AudioSources for a single AudioEntry containing filters." />
+        </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

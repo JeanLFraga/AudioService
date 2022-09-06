@@ -38,7 +38,7 @@ namespace JeanLF.AudioService
 
         public void UnsafeOnCompleted(Action continuation)
         {
-            _player.onKill = continuation;
+            _player.OnKill = continuation;
         }
     }
 }

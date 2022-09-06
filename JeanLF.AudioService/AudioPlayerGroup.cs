@@ -107,7 +107,7 @@ namespace JeanLF.AudioService
 
         private async UniTaskVoid AwaitFinish(AudioEntry entry, AudioPlayer player, UniTask task)
         {
-            await task;
+            await player;
             player.Dispose();
             _playingAudios.Remove(player);
 
