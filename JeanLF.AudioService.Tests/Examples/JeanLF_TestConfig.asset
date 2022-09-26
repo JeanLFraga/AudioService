@@ -25,7 +25,7 @@ MonoBehaviour:
       _bypassEffects: 0
       _loop: 0
       _priority: 128
-      _volume: 1
+      _volume: 0
       _minPitch: 1
       _maxPitch: 1
       _spatialBlend: 0
@@ -36,9 +36,39 @@ MonoBehaviour:
       _volumeRolloff: 0
       _minRolloff: 1
       _maxRolloff: 500
-    _filters: []
+    _filters:
+    - id: 0
+    - id: 1
   _audioGroups:
   - _id: TestGroup
     _mixerGroup: {fileID: 0}
   references:
     version: 1
+    00000000:
+      type: {class: ChorusFilterProperties, ns: JeanLF.AudioService.Filters, asm: JeanLF.AudioService}
+      data:
+        _dryMix: 0.5
+        _wetMix1: 0.5
+        _wetMix2: 0.5
+        _wetMix3: 0.5
+        _delay: 40
+        _rate: 0.8
+        _depth: 0.03
+    00000001:
+      type: {class: ReverbFilterProperties, ns: JeanLF.AudioService.Filters, asm: JeanLF.AudioService}
+      data:
+        _reverbPreset: 27
+        _dryLevel: 0
+        _room: 0
+        _roomHF: 0
+        _roomLF: 0
+        _decayTime: 1
+        _decayHFRatio: 0.5
+        _reflectionsLevel: -10000
+        _reflectionsDelay: 0
+        _reverbLevel: 0
+        _reverbDelay: 0.04
+        _HFReference: 5000
+        _LFReference: 1000
+        _diffusion: 100
+        _density: 100

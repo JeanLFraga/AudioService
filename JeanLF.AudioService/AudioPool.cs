@@ -23,7 +23,10 @@ namespace JeanLF.AudioService
         private readonly GameObject _poolParent;
         private readonly PoolSettings _settings;
 
+        
+
         private bool ShouldExpand => _settings.ExpandCount > 0;
+        private bool ShouldShrink => _settings.ShrinkCount > 0;
 
         public AudioPool(AudioDatabase database, PoolSettings poolSettings)
         {
@@ -48,6 +51,96 @@ namespace JeanLF.AudioService
                     SpawnFilteredPlayer(_settings.FilterPlayerPoolCount, audioEntries[i]);
                 }
             }
+        }
+
+        public AudioPlayer GetPlayer()
+        {
+            if (_pool.Count == 0)
+            {
+                if (!ShouldExpand)
+                {
+                    throw new InvalidOperationException("There is no more players in the pool and the expand count is zero.");
+                }
+
+                int maxStep = Mathf.Min(_pool.Count + _settings.ExpandCount, _settings.PlayerPoolCount);
+                SpawnPlayer(maxStep);
+            }
+
+            return _pool.Dequeue();
+        }
+
+        public AudioPlayer GetFilteredPlayer(EntryId id)
+        {
+            if (_filterPlayers[id].Players.Count == 0)
+            {
+                if (!ShouldExpand)
+                {
+                    throw new InvalidOperationException("There is no more players in the pool and the expand count is zero. Review your pool settings in Project Settings/JeanLF/AudioService");
+                }
+
+                int maxStep = Mathf.Min(_filterPlayers[id].Players.Count + _settings.ExpandCount, _settings.FilterPlayerPoolCount);
+                SpawnFilteredPlayer(maxStep, _filterPlayers[id].Entry);
+            }
+
+            return _filterPlayers[id].Players.Dequeue();
+        }
+
+        public void ReleasePlayer(AudioPlayer player)
+        {
+            _pool.Enqueue(player);
+
+            if (_pool.Count >= _settings.PlayerPoolCount + _settings.ShrinkCount && ShouldShrink)
+            {
+                for (int i = 0; i < _settings.ShrinkCount; i++)
+                {
+                    AudioPlayer instance = _pool.Dequeue();
+                    instance.Dispose();
+                    UnityEngine.Object.Destroy(instance.gameObject);
+                }
+            }
+        }
+
+        public void ReleaseFilteredPlayer(EntryId id, AudioPlayer player)
+        {
+            _filterPlayers[id].Players.Enqueue(player);
+
+            if (_filterPlayers[id].Players.Count >= _settings.FilterPlayerPoolCount + _settings.ShrinkCount && ShouldShrink)
+            {
+                for (int i = 0; i < _settings.ShrinkCount; i++)
+                {
+                    AudioPlayer instance = _filterPlayers[id].Players.Dequeue();
+                    instance.Dispose();
+                    UnityEngine.Object.Destroy(instance.gameObject);
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (AudioPlayer player in _pool)
+            {
+                player.Dispose();
+                UnityEngine.Object.Destroy(player.gameObject);
+            }
+
+            foreach (KeyValuePair<EntryId, FilterEntry> keyValue in _filterPlayers)
+            {
+                foreach (AudioPlayer player in keyValue.Value.Players)
+                {
+                    player.Dispose();
+                    UnityEngine.Object.Destroy(player.gameObject);
+                }
+            }
+        }
+
+        internal int GetPlayerInstanceCount()
+        {
+            return _pool.Count;
+        }
+
+        internal int GetFilteredPlayerInstanceCount(EntryId entryId)
+        {
+            return _filterPlayers[entryId].Players.Count;
         }
 
         private void SpawnPlayer(int spawnCount)
@@ -84,70 +177,6 @@ namespace JeanLF.AudioService
                 AudioPlayer player = gameObject.AddComponent<AudioPlayer>();
                 player.Setup(entry.Filters);
                 _filterPlayers[entry.ConvertedId].Players.Enqueue(player);
-            }
-        }
-
-        public AudioPlayer GetAudioPlayer()
-        {
-            if (_pool.Count == 0)
-            {
-                if (!ShouldExpand)
-                {
-                    throw new InvalidOperationException("There is no more players in the pool and the expand count is zero.");
-                }
-
-                int maxUntilLimit = (_pool.Count + _settings.ExpandCount) % _settings.PlayerPoolCount;
-                SpawnPlayer(_settings.ExpandCount - maxUntilLimit);
-            }
-
-            return _pool.Dequeue();
-        }
-
-        public AudioPlayer GetFilterPlayer(EntryId id)
-        {
-            if (_filterPlayers[id].Players.Count == 0)
-            {
-                if (!ShouldExpand)
-                {
-                    throw new InvalidOperationException("There is no more players in the pool and the expand count is zero.");
-                }
-
-                int maxUntilLimit = (_filterPlayers[id].Players.Count + _settings.ExpandCount) % _settings.FilterPlayerPoolCount;
-                SpawnFilteredPlayer(_settings.ExpandCount - maxUntilLimit, _filterPlayers[id].Entry);
-            }
-
-            return _filterPlayers[id].Players.Dequeue();
-        }
-
-        public void ReturnFilterToPool(EntryId id, AudioPlayer player)
-        {
-            //TODO Pool shrinking
-
-            _filterPlayers[id].Players.Enqueue(player);
-        }
-
-        public void ReturnToPool(AudioPlayer player)
-        {
-            //TODO Pool shrinking
-
-            _pool.Enqueue(player);
-        }
-
-        public void Dispose()
-        {
-            foreach (AudioPlayer player in _pool)
-            {
-                player.Dispose();
-                UnityEngine.Object.Destroy(player.gameObject);
-            }
-
-            foreach (KeyValuePair<EntryId, FilterEntry> keyValue in _filterPlayers)
-            {
-                foreach (AudioPlayer player in keyValue.Value.Players)
-                {
-                    player.Dispose();
-                    UnityEngine.Object.Destroy(player.gameObject);
-                }
             }
         }
     }

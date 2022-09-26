@@ -27,16 +27,16 @@ namespace JeanLF.AudioService
             AudioPlayer player;
             if (entry.HasFilters)
             {
-                player = _pool.GetFilterPlayer(entry.ConvertedId);
+                player = _pool.GetFilteredPlayer(entry.ConvertedId);
             }
             else
             {
-                player = _pool.GetAudioPlayer();
+                player = _pool.GetPlayer();
             }
 
-            UniTask task = player.Play(entry, playerProperties, _mixerGroup);
+            player.Play(entry, playerProperties, _mixerGroup);
             _playingAudios.Add(player);
-            AwaitFinish(entry, player, task).Forget();
+            AwaitFinish(entry, player).Forget();
 
             return player;
         }
@@ -105,7 +105,7 @@ namespace JeanLF.AudioService
             return _playingAudios.ToList();
         }
 
-        private async UniTaskVoid AwaitFinish(AudioEntry entry, AudioPlayer player, UniTask task)
+        private async UniTaskVoid AwaitFinish(AudioEntry entry, AudioPlayer player)
         {
             await player;
             player.Dispose();
@@ -113,11 +113,11 @@ namespace JeanLF.AudioService
 
             if (entry.HasFilters)
             {
-                _pool.ReturnFilterToPool(entry.ConvertedId, player);
+                _pool.ReleaseFilteredPlayer(entry.ConvertedId, player);
             }
             else
             {
-                _pool.ReturnToPool(player);
+                _pool.ReleasePlayer(player);
             }
         }
     }

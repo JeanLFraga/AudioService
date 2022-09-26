@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _database: {fileID: 11400000, guid: 819cefa365a7df2429fe01788c04384a, type: 2}
   _poolSettings:
-    _playerPoolCount: 3
+    _playerPoolCount: 15
     _filterPlayerPoolCount: 3
     _expandCount: 2
     _shrinkCount: 2
