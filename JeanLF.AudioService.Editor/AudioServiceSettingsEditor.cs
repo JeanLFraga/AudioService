@@ -25,13 +25,7 @@ namespace JeanLF.AudioService.Editor
                 return;
             }
 
-            CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
-                                 nameof(EntryId),
-                                 settings.Database.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
-
-            CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
-                                 nameof(GroupId),
-                                 settings.Database.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
+            GenerateEnums(settings.Database);
         }
 
         [SettingsProvider]
@@ -111,6 +105,11 @@ namespace JeanLF.AudioService.Editor
                 return;
             }
 
+            GenerateEnums(database);
+        }
+
+        private static void GenerateEnums(AudioDatabase database)
+        {
             CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
                                  nameof(EntryId),
                                  database.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
@@ -118,6 +117,8 @@ namespace JeanLF.AudioService.Editor
             CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
                                  nameof(GroupId),
                                  database.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
+
+            AssetDatabase.Refresh();
         }
 
         private static void OnEditClick()

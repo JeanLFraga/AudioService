@@ -34,6 +34,13 @@ namespace JeanLF.AudioService
             return this;
         }
 
+        public AudioPlayer Detach()
+        {
+            _cachedTransform.parent = null;
+
+            return this;
+        }
+
         public AudioPlayer Position(Vector3 position)
         {
             _cachedTransform.position = position;
@@ -44,6 +51,20 @@ namespace JeanLF.AudioService
         public AudioPlayer LocalPosition(Vector3 localPosition)
         {
             _cachedTransform.localPosition = localPosition;
+
+            return this;
+        }
+
+        public AudioPlayer Fade(float from, float to, float duration)
+        {
+            FadeAsync(from, to, duration);
+
+            return this;
+        }
+
+        public AudioPlayer Fade(float to, float duration)
+        {
+            FadeAsync(_audioSource.volume, to, duration);
 
             return this;
         }
@@ -108,6 +129,10 @@ namespace JeanLF.AudioService
             _audioSource.outputAudioMixerGroup = mixerGroup;
             SetAudioProperties(playerProperties);
             SetFilterProperties(entry.Filters);
+            bool isPlayingInternal()
+            {
+                return _audioSource.isPlaying || IsPaused;
+            }
 
             switch (entry.Mode)
             {
@@ -116,8 +141,13 @@ namespace JeanLF.AudioService
                     AssetReference assetReference = entry.Clips[UnityEngine.Random.Range(0, entry.Clips.Length)];
                     _audioSource.clip = LoadClip(assetReference);
                     _audioSource.Play();
-                    await UniTask.WaitWhile(() => _audioSource.isPlaying, cancellationToken: this.GetCancellationTokenOnDestroy());
-                    assetReference.ReleaseAsset();
+                    await UniTask.WaitWhile(isPlayingInternal, cancellationToken: this.GetCancellationTokenOnDestroy());
+
+                    if (assetReference.Asset != null)
+                    {
+                        assetReference.ReleaseAsset();
+                    }
+
                     break;
                 }
 
@@ -128,8 +158,12 @@ namespace JeanLF.AudioService
                         AssetReference assetReference = entry.Clips[i];
                         _audioSource.clip = LoadClip(assetReference);
                         _audioSource.Play();
-                        await UniTask.WaitWhile(() => _audioSource.isPlaying, cancellationToken: this.GetCancellationTokenOnDestroy());
-                        assetReference.ReleaseAsset();
+                        await UniTask.WaitWhile(isPlayingInternal, cancellationToken: this.GetCancellationTokenOnDestroy());
+
+                        if (assetReference.Asset)
+                        {
+                            assetReference.ReleaseAsset();
+                        }
                     }
 
                     break;
@@ -143,10 +177,10 @@ namespace JeanLF.AudioService
                     {
                         _audioSource.clip = LoadClip(entry.Clips[index]);
                         _audioSource.Play();
-                        await UniTask.WaitWhile(() => _audioSource.isPlaying, cancellationToken: this.GetCancellationTokenOnDestroy());
+                        await UniTask.WaitWhile(isPlayingInternal, cancellationToken: this.GetCancellationTokenOnDestroy());
                         index = (index + 1) % entry.Clips.Length;
                     }
-                    while (_audioSource.isPlaying);
+                    while (!this.GetCancellationTokenOnDestroy().IsCancellationRequested);
 
                     break;
                 }
@@ -196,6 +230,18 @@ namespace JeanLF.AudioService
             }
 
             return assetReference.Asset as AudioClip;
+        }
+
+        private async UniTaskVoid FadeAsync(float from, float to, float duration)
+        {
+            float time = 0f;
+
+            while (time <= duration)
+            {
+                time += Time.deltaTime;
+                _audioSource.volume = Mathf.Lerp(from, to, time);
+                await UniTask.NextFrame();
+            }
         }
     }
 }

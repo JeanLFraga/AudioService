@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using UnityEditor;
 
 namespace JeanLF.AudioService.Editor
 {
@@ -7,6 +9,8 @@ namespace JeanLF.AudioService.Editor
     {
         public static void WriteEnum(string filePath, string enumName, IEnumerable<string> items)
         {
+            IEnumerable<string> filtered = items.GroupBy(name => name).Select(nameGroup => nameGroup.Key);
+
             StreamWriter file = new StreamWriter(filePath,false);
 
             SourceFile sourceFile = new SourceFile();
@@ -16,7 +20,7 @@ namespace JeanLF.AudioService.Editor
 
                 using (new BracesScope(sourceFile))
                 {
-                    foreach (string member in items)
+                    foreach (string member in filtered)
                     {
                         if (string.IsNullOrWhiteSpace(member))
                         {

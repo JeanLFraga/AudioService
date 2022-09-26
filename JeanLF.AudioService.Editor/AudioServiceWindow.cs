@@ -120,22 +120,13 @@ namespace JeanLF.AudioService.Editor
 
         private void GenerateEnums()
         {
-            List<string> RemoveDuplicates(IEnumerable<string> items)
-            {
-                HashSet<string> hashSet = new HashSet<string>(items);
-                List<string> list = hashSet.ToList();
-                list.Insert(0,"Invalid");
-
-                return list;
-            }
-
             CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
                                   nameof(EntryId),
-                                  RemoveDuplicates(_audioDatabase.AudioEntries.Select(x => x.Id)));
+                                  _audioDatabase.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
 
             CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
-                                  nameof(GroupId),
-                                  RemoveDuplicates(_audioDatabase.AudioGroups.Select(x => x.Id)));
+                                 nameof(GroupId),
+                                 _audioDatabase.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
 
             AssetDatabase.Refresh();
         }
