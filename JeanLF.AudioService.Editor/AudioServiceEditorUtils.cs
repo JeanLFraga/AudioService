@@ -4,7 +4,7 @@ namespace JeanLF.AudioService.Editor
 {
     public static class AudioServiceEditorUtils
     {
-        public const string PackageName = "com.jeanlf.audioservice";
+        public const string PackageName = "com.jeanlfraga.audioservice";
 
         public const string BaseServicePath = "Packages/" + PackageName;
         public const string EditorUIPath = BaseServicePath + "/JeanLF.AudioService.Editor/UI";
@@ -16,6 +16,6 @@ namespace JeanLF.AudioService.Editor
         public const string GroupFilePath = GeneratedAssetsPath + "/GroupId.cs";
 
         public const string BaseNamespace = "JeanLF";
-        public const string AudioServiceNamespace = BaseNamespace + ".AudioService";
+        public const string CoreNamespace = BaseNamespace + ".AudioService";
     }
 }

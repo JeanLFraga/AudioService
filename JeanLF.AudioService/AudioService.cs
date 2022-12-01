@@ -163,6 +163,16 @@ namespace JeanLF.AudioService
             }
         }
 
+        public void FadeGroup(GroupId groupId, float to, float duration)
+        {
+            _audioGroups[groupId].FadeGroup(to, duration);
+        }
+
+        public void FadeGroup(GroupId groupId, float from, float to, float duration)
+        {
+            _audioGroups[groupId].FadeGroup(from, to, duration);
+        }
+
         public void Dispose()
         {
             _pool?.Dispose();

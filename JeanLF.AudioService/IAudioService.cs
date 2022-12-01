@@ -17,6 +17,8 @@ namespace JeanLF.AudioService
         void Stop(AudioReference audio);
         void Stop(EntryId entryId, GroupId groupId);
         void StopGroup(GroupId groupId);
+        void FadeGroup(GroupId groupId, float to, float duration);
+        void FadeGroup(GroupId groupId, float from, float to, float duration);
         void StopAll();
     }
 }

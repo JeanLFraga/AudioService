@@ -196,6 +196,37 @@ namespace JeanLF.AudioService
             _currentEntry = null;
         }
 
+        private async UniTaskVoid InvokeEvents(double evtTempo)
+        {
+            double findNextEvent()
+            {
+                double remainder = ((double)_audioSource.timeSamples / _audioSource.clip.frequency) % evtTempo + double.Epsilon;
+                return AudioSettings.dspTime + (evtTempo - remainder);
+            }
+
+            double nextEvent = AudioSettings.dspTime;
+
+            while (IsActive) //Player.IsActive
+            {
+                if (IsPaused)
+                {
+                    continue;
+                }
+
+                await UniTask.Yield(PlayerLoopTiming.TimeUpdate);
+
+                double currentTime = ((double)_audioSource.timeSamples / _audioSource.clip.samples);
+
+                if (AudioSettings.dspTime >= nextEvent && currentTime < 1)
+                {
+                    Debug.Log($"Beat {AudioSettings.dspTime} | {nextEvent} | {(double)_audioSource.timeSamples / _audioSource.clip.frequency}");
+                    nextEvent = findNextEvent();
+                    //OnBeat|OnBar
+                }
+            }
+            //OnEnd
+        }
+
         private void SetAudioProperties(AudioPlayerProperties properties)
         {
             _audioSource.bypassEffects = properties.BypassEffects;

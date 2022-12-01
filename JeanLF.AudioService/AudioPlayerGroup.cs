@@ -99,6 +99,16 @@ namespace JeanLF.AudioService
             _playingAudios.Clear();
         }
 
+        internal void FadeGroup(float to, float duration)
+        {
+            
+        }
+
+        internal void FadeGroup(float from, float to, float duration)
+        {
+            
+        }
+
         [Pure]
         internal IReadOnlyList<AudioPlayer> GetPlayingAudios()
         {

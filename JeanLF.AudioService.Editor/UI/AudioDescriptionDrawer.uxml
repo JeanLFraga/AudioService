@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="AudioDescriptionDrawer.uss" />
+    <ui:Foldout text="Audio Description">
+        <uie:IntegerField label="Tempo" value="42" name="Tempo" binding-path="_tempo" />
+        <ui:VisualElement name="TimeSigGroup" style="flex-direction: row; margin-left: 3px; margin-right: 3px; margin-top: 1px; margin-bottom: 1px;">
+            <ui:Label text="Time Signature" display-tooltip-when-elided="true" class="unity-base-field__label" />
+            <uie:IntegerField value="42" binding-path="_timeSignature.x" name="UpperSig" style="margin-left: 0;" />
+            <ui:Label text="/" display-tooltip-when-elided="true" style="-unity-text-align: middle-center; -unity-font-style: bold; padding-left: 7px; padding-right: 7px;" />
+            <uie:IntegerField value="42" name="LowerSig" binding-path="_timeSignature.y" style="margin-left: 0;" />
+        </ui:VisualElement>
+        <uie:Vector2IntField label="Time Signature" />
+    </ui:Foldout>
+</ui:UXML>

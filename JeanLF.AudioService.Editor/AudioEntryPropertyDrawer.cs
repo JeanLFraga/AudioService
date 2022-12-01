@@ -34,8 +34,10 @@ namespace JeanLF.AudioService.Editor
         {
             EditorGUI.BeginProperty(position, label, property);
 
-            EditorGUI.PropertyField(position, property, label, true);
+            EditorGUI.PropertyField(position, property, label, true); // Draw default
             position.y += EditorGUI.GetPropertyHeight(property) + VerticalSpacing;
+
+            SerializedProperty descriptionProperty = property.FindPropertyRelative(AudioEntry.AudioDescriptionName);
 
             SerializedProperty listProperty = property.FindPropertyRelative(AudioEntry.FilterPropertyName);
 

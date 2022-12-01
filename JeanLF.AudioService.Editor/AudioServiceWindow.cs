@@ -120,15 +120,19 @@ namespace JeanLF.AudioService.Editor
 
         private void GenerateEnums()
         {
-            CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
+            bool hasUpdate = false;
+            hasUpdate |= CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
                                   nameof(EntryId),
                                   _audioDatabase.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
 
-            CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
+            hasUpdate |= CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
                                  nameof(GroupId),
                                  _audioDatabase.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
 
-            AssetDatabase.Refresh();
+            if (hasUpdate)
+            {
+                AssetDatabase.Refresh();
+            }
         }
 
         private static string CapitalizeFirstLetter(string text)

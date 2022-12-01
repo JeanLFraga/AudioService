@@ -15,6 +15,7 @@ namespace JeanLF.AudioService
         internal static readonly string IdPropertyPath = nameof(_id);
         internal static readonly string FilterPropertyName = nameof(_filters);
         internal static readonly string AudioPropertyName = nameof(_audioProperties);
+        internal static readonly string AudioDescriptionName = nameof(_audioDescription);
 #endif
 
         internal enum PlayMode
@@ -28,6 +29,7 @@ namespace JeanLF.AudioService
         [SerializeField] private PlayMode _playMode;
         [SerializeField] private AssetReferenceT<AudioClip>[] _clips;
         [SerializeField] private AudioPlayerProperties _audioProperties;
+        [SerializeField] private AudioDescription _audioDescription;
         [HideInInspector] [SerializeReference] private IFilterProperty[] _filters;
         private EntryId _cachedId;
 
@@ -50,12 +52,14 @@ namespace JeanLF.AudioService
         public PlayMode Mode => _playMode;
         public AssetReferenceT<AudioClip>[] Clips => _clips;
         public AudioPlayerProperties AudioProperties => _audioProperties;
+        public AudioDescription AudioDescription => _audioDescription;
         public IFilterProperty[] Filters => _filters;
         public bool HasFilters => _filters.Length > 0;
 
         public void SetDefaultValues()
         {
             _audioProperties = AudioPlayerProperties.DefaultValues;
+            _audioDescription = new AudioDescription(120, new Vector2Int(4, 4));
         }
     }
 }
