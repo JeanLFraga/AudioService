@@ -13,6 +13,11 @@ namespace JeanLF.AudioService
     [RequireComponent(typeof(AudioSource))]
     public class AudioPlayer : MonoBehaviour, IDisposable
     {
+        public delegate void TempoEvent(int current);
+        public event Action OnEnd;
+        public event TempoEvent OnBar;
+        public event TempoEvent OnBeat;
+
         private AudioSource _audioSource;
         private Dictionary<Type, Component> _filters;
         private AudioEntry? _currentEntry;
@@ -85,6 +90,20 @@ namespace JeanLF.AudioService
             return this;
         }
 
+        public AudioPlayer SetOnBeat(TempoEvent action)
+        {
+            OnBeat = action;
+
+            return this;
+        }
+
+        public AudioPlayer SetOnBar(TempoEvent action)
+        {
+            OnBar = action;
+
+            return this;
+        }
+
         public void Dispose()
         {
             if (_currentEntry.HasValue)
@@ -141,6 +160,7 @@ namespace JeanLF.AudioService
                     AssetReference assetReference = entry.Clips[UnityEngine.Random.Range(0, entry.Clips.Length)];
                     _audioSource.clip = LoadClip(assetReference);
                     _audioSource.Play();
+                    InvokeTempoEvents().Forget();
                     await UniTask.WaitWhile(isPlayingInternal, cancellationToken: this.GetCancellationTokenOnDestroy());
 
                     if (assetReference.Asset != null)
@@ -158,6 +178,7 @@ namespace JeanLF.AudioService
                         AssetReference assetReference = entry.Clips[i];
                         _audioSource.clip = LoadClip(assetReference);
                         _audioSource.Play();
+                        InvokeTempoEvents().Forget();
                         await UniTask.WaitWhile(isPlayingInternal, cancellationToken: this.GetCancellationTokenOnDestroy());
 
                         if (assetReference.Asset)
@@ -177,6 +198,7 @@ namespace JeanLF.AudioService
                     {
                         _audioSource.clip = LoadClip(entry.Clips[index]);
                         _audioSource.Play();
+                        InvokeTempoEvents().Forget();
                         await UniTask.WaitWhile(isPlayingInternal, cancellationToken: this.GetCancellationTokenOnDestroy());
                         index = (index + 1) % entry.Clips.Length;
                     }
@@ -196,35 +218,60 @@ namespace JeanLF.AudioService
             _currentEntry = null;
         }
 
-        private async UniTaskVoid InvokeEvents(double evtTempo)
+        private async UniTaskVoid InvokeTempoEvents()
         {
-            double findNextEvent()
+            if (_currentEntry == null)
+            {
+                return;
+            }
+
+            AudioDescription description = _currentEntry.Value.AudioDescription;
+
+            if (!description.IsValid)
+            {
+                return;
+            }
+
+            double barPerSec = description.BarPerSecond;
+            double beatPerSec = description.BeatPerSecond;
+
+            double findNextEvent(double evtTempo)
             {
                 double remainder = ((double)_audioSource.timeSamples / _audioSource.clip.frequency) % evtTempo + double.Epsilon;
                 return AudioSettings.dspTime + (evtTempo - remainder);
             }
 
-            double nextEvent = AudioSettings.dspTime;
+            double nextBeat = AudioSettings.dspTime;
+            double nextBar = AudioSettings.dspTime;
 
-            while (IsActive) //Player.IsActive
+
+            while (IsActive)
             {
-                if (IsPaused)
+                if (!IsPlaying)
                 {
+                    await UniTask.Yield(PlayerLoopTiming.TimeUpdate);
                     continue;
                 }
 
                 await UniTask.Yield(PlayerLoopTiming.TimeUpdate);
 
-                double currentTime = ((double)_audioSource.timeSamples / _audioSource.clip.samples);
+                double currentTimeNorm = ((double)_audioSource.timeSamples / _audioSource.clip.samples);
 
-                if (AudioSettings.dspTime >= nextEvent && currentTime < 1)
+                if (AudioSettings.dspTime >= nextBeat && currentTimeNorm < 1)
                 {
-                    Debug.Log($"Beat {AudioSettings.dspTime} | {nextEvent} | {(double)_audioSource.timeSamples / _audioSource.clip.frequency}");
-                    nextEvent = findNextEvent();
-                    //OnBeat|OnBar
+                    double currentTimeSec = (double)_audioSource.timeSamples / _audioSource.clip.frequency;
+                    nextBeat = findNextEvent(beatPerSec);
+                    OnBeat?.Invoke( (int)(currentTimeSec / beatPerSec));
+                }
+
+                if (AudioSettings.dspTime >= nextBar && currentTimeNorm < 1)
+                {
+                    double currentTimeSec = (double)_audioSource.timeSamples / _audioSource.clip.frequency;
+                    nextBar = findNextEvent(barPerSec);
+                    OnBar?.Invoke( (int)(currentTimeSec / barPerSec));
                 }
             }
-            //OnEnd
+            OnEnd?.Invoke();
         }
 
         private void SetAudioProperties(AudioPlayerProperties properties)

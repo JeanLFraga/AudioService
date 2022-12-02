@@ -23,6 +23,7 @@ namespace JeanLF.AudioService
         public int Tempo => _tempo;
         public int UpperSignature => _timeSignature.x;
         public int LowerSignature => _timeSignature.y;
+        public bool IsValid => _tempo > 0 || _timeSignature.x > 0 || _timeSignature.y > 0;
 
         public double BeatPerSecond => 60d / _tempo;
 
