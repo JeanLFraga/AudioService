@@ -141,6 +141,7 @@ namespace JeanLF.AudioService.Editor
         private void OnAddCallback(ReorderableList list)
         {
             ReorderableList.defaultBehaviours.DoAddButton(list);
+            _arrayProperty.serializedObject.ApplyModifiedProperties();
             OnItemAdd?.Invoke();
         }
 
