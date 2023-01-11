@@ -12,8 +12,11 @@ namespace JeanLF.AudioService.Editor
     public class ReorderableArray : BindableElement
     {
         public delegate bool SearchDelegate(SerializedProperty property);
+
         public event ReorderableList.AddDropdownCallbackDelegate AddDropdownCallback;
+
         public event Action OnDataUpdate;
+
         public event Action OnItemAdd;
 
         private SerializedProperty _arrayProperty;
@@ -27,14 +30,31 @@ namespace JeanLF.AudioService.Editor
         private SearchDelegate _matchingFunction;
 
         private bool _shouldDraw = true;
+
         public new class UxmlFactory : UxmlFactory<ReorderableArray, UxmlTraits> { }
 
         public new class UxmlTraits : BindableElement.UxmlTraits
         {
-            private UxmlBoolAttributeDescription _draggable = new UxmlBoolAttributeDescription { name = "draggable", defaultValue = true };
-            private UxmlBoolAttributeDescription _displayHeader = new UxmlBoolAttributeDescription { name = "header", defaultValue = true };
-            private UxmlBoolAttributeDescription _displayAddButton = new UxmlBoolAttributeDescription { name = "add-button", defaultValue = true };
-            private UxmlBoolAttributeDescription _displayRemoveButton = new UxmlBoolAttributeDescription { name = "removebutton", defaultValue = true };
+            private UxmlBoolAttributeDescription _draggable = new UxmlBoolAttributeDescription
+            {
+                name = "draggable",
+                defaultValue = true
+            };
+            private UxmlBoolAttributeDescription _displayHeader = new UxmlBoolAttributeDescription
+            {
+                name = "header",
+                defaultValue = true
+            };
+            private UxmlBoolAttributeDescription _displayAddButton = new UxmlBoolAttributeDescription
+            {
+                name = "add-button",
+                defaultValue = true
+            };
+            private UxmlBoolAttributeDescription _displayRemoveButton = new UxmlBoolAttributeDescription
+            {
+                name = "removebutton",
+                defaultValue = true
+            };
 
             public override IEnumerable<UxmlChildElementDescription> uxmlChildElementsDescription
             {
@@ -51,12 +71,11 @@ namespace JeanLF.AudioService.Editor
             }
         }
 
-        public ReorderableArray(
-            SerializedProperty arrayProperty,
-            bool draggable = true,
-            bool displayHeader = true,
-            bool displayAddButton = true,
-            bool displayRemoveButton = true)
+        public ReorderableArray(SerializedProperty arrayProperty,
+                                bool draggable = true,
+                                bool displayHeader = true,
+                                bool displayAddButton = true,
+                                bool displayRemoveButton = true)
         {
             _arrayProperty = arrayProperty;
             _draggable = draggable;
@@ -79,12 +98,13 @@ namespace JeanLF.AudioService.Editor
         {
             base.ExecuteDefaultAction(evt);
             Type type = evt.GetType();
+
             if (type.Name != "SerializedPropertyBindEvent")
             {
                 return;
             }
 
-            _arrayProperty = type.GetProperty("bindProperty").GetValue(evt) as SerializedProperty ;
+            _arrayProperty = type.GetProperty("bindProperty").GetValue(evt) as SerializedProperty;
 
             if (_arrayProperty == null)
             {
@@ -92,13 +112,14 @@ namespace JeanLF.AudioService.Editor
 
                 return;
             }
+
             if (_reorderable != null)
             {
                 _reorderable.serializedProperty = _arrayProperty;
             }
             else
             {
-                CreateReorderableList(_draggable,_displayHeader,_displayAddButton,_displayRemoveButton);
+                CreateReorderableList(_draggable, _displayHeader, _displayAddButton, _displayRemoveButton);
                 _container.onGUIHandler = DrawList;
                 _listName = new GUIContent(_arrayProperty.displayName);
             }
@@ -143,16 +164,13 @@ namespace JeanLF.AudioService.Editor
             SerializedProperty indexProp = _arrayProperty.GetArrayElementAtIndex(index);
 
             rect.height = EditorGUI.GetPropertyHeight(indexProp);
-            bool lastState = indexProp.isExpanded;
             EditorGUI.BeginChangeCheck();
-            EditorGUI.PropertyField(rect, indexProp,true);
+            EditorGUI.PropertyField(rect, indexProp, true);
+
             if (EditorGUI.EndChangeCheck())
             {
-                if (lastState == indexProp.isExpanded) //HACK: Avoid the foldout event to trigger a data change event.
-                {
-                    _arrayProperty.serializedObject.ApplyModifiedProperties();
-                    OnDataUpdate?.Invoke();
-                }
+                _arrayProperty.serializedObject.ApplyModifiedProperties();
+                OnDataUpdate?.Invoke();
             }
         }
 
@@ -162,6 +180,7 @@ namespace JeanLF.AudioService.Editor
             {
                 return;
             }
+
             _reorderable.DoLayoutList();
         }
     }
