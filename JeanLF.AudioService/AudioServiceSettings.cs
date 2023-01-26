@@ -37,6 +37,6 @@ namespace JeanLF.AudioService
         {
             _poolSettings = settings;
         }
-    }
 #endif
+    }
 }
