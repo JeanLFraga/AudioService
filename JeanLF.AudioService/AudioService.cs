@@ -19,7 +19,7 @@ namespace JeanLF.AudioService
 
         public AudioService()
         {
-            AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(AudioServiceSettings.FileName);
+            AudioServiceSettings settings = Addressables.LoadAssetAsync<AudioServiceSettings>(AudioServiceSettings.FileName).WaitForCompletion();
             _database = settings.Database;
 
             if (_database == null)

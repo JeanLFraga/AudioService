@@ -3,20 +3,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
 
 namespace JeanLF.AudioService.Editor
 {
-    [InitializeOnLoad]
-    internal static class AudioServiceSettingsEditor
+    internal class AudioServiceSettingsEditor : AssetPostprocessor
     {
         private static Button _editButton;
         private static SerializedObject _settings;
         private static ObjectField _configField;
 
-        static AudioServiceSettingsEditor()
+        private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             AudioServiceSettings settings = GetOrCreateSettings();
 
@@ -29,7 +31,7 @@ namespace JeanLF.AudioService.Editor
         }
 
         [SettingsProvider]
-        public static SettingsProvider CreateSettingsProvider()
+        public static SettingsProvider AudioServiceSettingProvider()
         {
             SettingsProvider provider = new SettingsProvider("Project/JeanLF/Audio Service", SettingsScope.Project);
             provider.activateHandler = DrawSettings;
@@ -52,9 +54,20 @@ namespace JeanLF.AudioService.Editor
                 settings = ScriptableObject.CreateInstance<AudioServiceSettings>();
 
                 Directory.CreateDirectory(Path.GetDirectoryName(AudioServiceEditorUtils.SettingsAssetPath));
-                AssetDatabase.CreateAsset(settings,  AudioServiceEditorUtils.SettingsAssetPath);
+                AssetDatabase.CreateAsset(settings, AudioServiceEditorUtils.SettingsAssetPath);
                 AssetDatabase.SaveAssets();
             }
+
+            string guid = AssetDatabase.AssetPathToGUID(AudioServiceEditorUtils.SettingsAssetPath);
+
+            if (AddressableAssetSettingsDefaultObject.Settings.FindAssetEntry(guid) != null)
+            {
+                return settings;
+            }
+
+            AddressableAssetEntry entry = AddressableAssetSettingsDefaultObject.Settings.CreateOrMoveEntry(guid, AddressableAssetSettingsDefaultObject.Settings.DefaultGroup);
+            entry.address = AudioServiceSettings.FileName;
+            AddressableAssetSettingsDefaultObject.Settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entry, true);
 
             return settings;
         }

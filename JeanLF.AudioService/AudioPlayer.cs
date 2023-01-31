@@ -257,7 +257,7 @@ namespace JeanLF.AudioService
 
                 await UniTask.Yield(PlayerLoopTiming.TimeUpdate, cancelToken);
 
-                if (cancelToken.IsCancellationRequested)
+                if (IsActive || cancelToken.IsCancellationRequested)
                 {
                     break;
                 }
