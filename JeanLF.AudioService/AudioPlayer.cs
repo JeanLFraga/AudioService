@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Audio;
@@ -244,16 +245,22 @@ namespace JeanLF.AudioService
             double nextBeat = AudioSettings.dspTime;
             double nextBar = AudioSettings.dspTime;
 
+            CancellationToken cancelToken = this.GetCancellationTokenOnDestroy();
 
-            while (IsActive)
+            while (IsActive && !cancelToken.IsCancellationRequested)
             {
                 if (!IsPlaying)
                 {
-                    await UniTask.Yield(PlayerLoopTiming.TimeUpdate);
+                    await UniTask.Yield(PlayerLoopTiming.TimeUpdate, cancelToken);
                     continue;
                 }
 
-                await UniTask.Yield(PlayerLoopTiming.TimeUpdate);
+                await UniTask.Yield(PlayerLoopTiming.TimeUpdate, cancelToken);
+
+                if (cancelToken.IsCancellationRequested)
+                {
+                    break;
+                }
 
                 double currentTimeNorm = ((double)_audioSource.timeSamples / _audioSource.clip.samples);
 
