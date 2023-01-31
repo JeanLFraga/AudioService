@@ -1,8 +1,6 @@
 using System;
-using Codice.Client.Common;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.UIElements;

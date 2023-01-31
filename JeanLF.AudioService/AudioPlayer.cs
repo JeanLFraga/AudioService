@@ -29,7 +29,7 @@ namespace JeanLF.AudioService
 
         public bool IsPaused { get; private set; }
         public bool IsPlaying => _audioSource.isPlaying && !IsPaused;
-        internal bool IsActive => _currentEntry.HasValue;
+        internal bool IsActive => _currentEntry.HasValue && _audioSource != null;
 
         public AudioPlayer Attach(Transform parent)
         {
