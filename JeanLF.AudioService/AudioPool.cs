@@ -95,6 +95,12 @@ namespace JeanLF.AudioService
                 {
                     AudioPlayer instance = _pool.Dequeue();
                     instance.Dispose();
+#if UNITY_EDITOR
+                    if (!Application.isPlaying)
+                    {
+                        UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                    }
+#endif
                     UnityEngine.Object.Destroy(instance.gameObject);
                 }
             }
@@ -110,6 +116,12 @@ namespace JeanLF.AudioService
                 {
                     AudioPlayer instance = _filterPlayers[id].Players.Dequeue();
                     instance.Dispose();
+#if UNITY_EDITOR
+                    if (!Application.isPlaying)
+                    {
+                        UnityEngine.Object.DestroyImmediate(instance.gameObject);
+                    }
+#endif
                     UnityEngine.Object.Destroy(instance.gameObject);
                 }
             }
@@ -120,6 +132,12 @@ namespace JeanLF.AudioService
             foreach (AudioPlayer player in _pool)
             {
                 player.Dispose();
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                {
+                    UnityEngine.Object.DestroyImmediate(player.gameObject);
+                }
+#endif
                 UnityEngine.Object.Destroy(player.gameObject);
             }
 
@@ -128,6 +146,12 @@ namespace JeanLF.AudioService
                 foreach (AudioPlayer player in keyValue.Value.Players)
                 {
                     player.Dispose();
+#if UNITY_EDITOR
+                    if (!Application.isPlaying)
+                    {
+                        UnityEngine.Object.DestroyImmediate(player.gameObject);
+                    }
+#endif
                     UnityEngine.Object.Destroy(player.gameObject);
                 }
             }
