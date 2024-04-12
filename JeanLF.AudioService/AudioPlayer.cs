@@ -15,6 +15,7 @@ namespace JeanLF.AudioService
     public class AudioPlayer : MonoBehaviour, IDisposable
     {
         public delegate void TempoEvent(int current);
+        public event Action<AudioClip> OnTrackChanged;
         public event Action OnEnd;
         public event TempoEvent OnBar;
         public event TempoEvent OnBeat;
@@ -120,8 +121,14 @@ namespace JeanLF.AudioService
 
             _cachedTransform.position = Vector3.zero;
             _cachedTransform.parent = null;
+            
             IsPaused = false;
             _audioSource.Stop();
+            
+            OnBar = null;
+            OnBeat = null;
+            OnEnd = null;
+            OnTrackChanged = null;
         }
 
         internal void Setup()
@@ -163,11 +170,13 @@ namespace JeanLF.AudioService
                     _audioSource.Play();
                     InvokeTempoEvents().Forget();
                     await UniTask.WaitWhile(isPlayingInternal, cancellationToken: this.GetCancellationTokenOnDestroy());
-
+                    
+                    OnTrackChanged?.Invoke(_audioSource.clip);
                     if (assetReference.Asset != null)
                     {
                         assetReference.ReleaseAsset();
                     }
+                    OnEnd?.Invoke();
 
                     break;
                 }
@@ -181,12 +190,15 @@ namespace JeanLF.AudioService
                         _audioSource.Play();
                         InvokeTempoEvents().Forget();
                         await UniTask.WaitWhile(isPlayingInternal, cancellationToken: this.GetCancellationTokenOnDestroy());
-
+                        
+                        OnTrackChanged?.Invoke(_audioSource.clip);
                         if (assetReference.Asset)
                         {
                             assetReference.ReleaseAsset();
                         }
+                        
                     }
+                    OnEnd?.Invoke();
 
                     break;
                 }
@@ -200,11 +212,14 @@ namespace JeanLF.AudioService
                         _audioSource.clip = LoadClip(entry.Clips[index]);
                         _audioSource.Play();
                         InvokeTempoEvents().Forget();
+                        
                         await UniTask.WaitWhile(isPlayingInternal, cancellationToken: this.GetCancellationTokenOnDestroy());
+                        
+                        OnTrackChanged?.Invoke(_audioSource.clip);
                         index = (index + 1) % entry.Clips.Length;
                     }
                     while (!this.GetCancellationTokenOnDestroy().IsCancellationRequested);
-
+                    OnEnd?.Invoke();
                     break;
                 }
             }

@@ -1,14 +1,14 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="AudioServiceSettings.uss" />
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.jeanlfraga.audioservice/JeanLF.AudioService.Editor/UI/AudioServiceSettings.uss?fileID=7433441132597879392&amp;guid=5d179291860d06b4aba14806843759ad&amp;type=3#AudioServiceSettings" />
     <ui:VisualElement name="VisualElement" class="settings-container">
         <ui:Label text="Audio Service" display-tooltip-when-elided="true" class="settings-header" />
         <ui:VisualElement style="flex-direction: row;">
             <uie:ObjectField label="Audio Configuration" allow-scene-objects="false" tooltip="The configuration used in the service." name="configObject" type="JeanLF.AudioService.AudioDatabase, JeanLF.AudioService" class="settings-control" style="flex-shrink: 1; flex-grow: 1;" />
             <ui:Button display-tooltip-when-elided="true" name="createButton" style="width: 20px;">
-                <ui:VisualElement style="flex-direction: column; height: 16px; background-image: url(&apos;/Packages/com.jeanlf.audioservice/JeanLF.AudioService.Editor/UI/Icons/d_Toolbar Plus@2x.png&apos;); -unity-background-scale-mode: scale-to-fit; flex-grow: 1; width: 12px; left: -3px;" />
+                <ui:VisualElement style="flex-direction: column; height: 16px; background-image: url(&apos;project://database/Packages/com.jeanlfraga.audioservice/JeanLF.AudioService.Editor/UI/Icons/d_Toolbar%20Plus@2x.png?fileID=2800000&amp;guid=17d92b3030c838f4abd2c42d1fa9558e&amp;type=3#d_Toolbar Plus@2x&apos;); -unity-background-scale-mode: scale-to-fit; flex-grow: 1; width: 12px; left: -3px;" />
             </ui:Button>
             <ui:Button display-tooltip-when-elided="true" name="editButton" class="settings-button" style="width: 20px; background-image: none;">
-                <ui:VisualElement style="flex-direction: column; height: 16px; background-image: url(&apos;/Packages/com.jeanlf.audioservice/JeanLF.AudioService.Editor/UI/Icons/d_CustomTool@2x.png&apos;); -unity-background-scale-mode: scale-to-fit; flex-grow: 1; width: 14px; left: -4px;" />
+                <ui:VisualElement style="flex-direction: column; height: 16px; background-image: url(&apos;project://database/Packages/com.jeanlfraga.audioservice/JeanLF.AudioService.Editor/UI/Icons/d_CustomTool@2x.png?fileID=2800000&amp;guid=4239ccdf0c91da249ad22435980632fe&amp;type=3#d_CustomTool@2x&apos;); -unity-background-scale-mode: scale-to-fit; flex-grow: 1; width: 14px; left: -4px;" />
             </ui:Button>
         </ui:VisualElement>
         <ui:VisualElement class="settings-box" style="margin-left: 3px; margin-right: 3px; margin-top: 1px; margin-bottom: 1px;">
