@@ -23,8 +23,6 @@ namespace JeanLF.AudioService
         private readonly GameObject _poolParent;
         private readonly PoolSettings _settings;
 
-        
-
         private bool ShouldExpand => _settings.ExpandCount > 0;
         private bool ShouldShrink => _settings.ShrinkCount > 0;
 
@@ -87,6 +85,8 @@ namespace JeanLF.AudioService
 
         public void ReleasePlayer(AudioPlayer player)
         {
+            player.transform.parent = _poolParent.transform;
+            UnityEngine.Object.DontDestroyOnLoad(player.gameObject);
             _pool.Enqueue(player);
 
             if (_pool.Count >= _settings.PlayerPoolCount + _settings.ShrinkCount && ShouldShrink)
@@ -108,6 +108,8 @@ namespace JeanLF.AudioService
 
         public void ReleaseFilteredPlayer(EntryId id, AudioPlayer player)
         {
+            player.transform.parent = _poolParent.transform;
+            UnityEngine.Object.DontDestroyOnLoad(player.gameObject);
             _filterPlayers[id].Players.Enqueue(player);
 
             if (_filterPlayers[id].Players.Count >= _settings.FilterPlayerPoolCount + _settings.ShrinkCount && ShouldShrink)
@@ -157,6 +159,16 @@ namespace JeanLF.AudioService
             }
         }
 
+        public void HandleFilteredPlayerDestroyed(AudioEntry entry)
+        {
+            SpawnFilteredPlayer(1, entry);
+        }
+        
+        public void HandlePlayerDestroyed()
+        {
+            SpawnPlayer(1);
+        }
+
         internal int GetPlayerInstanceCount()
         {
             return _pool.Count;
@@ -181,6 +193,7 @@ namespace JeanLF.AudioService
 
                 AudioPlayer player = gameObject.AddComponent<AudioPlayer>();
 
+                player.OnDestroyed += HandlePlayerDestroyed;
                 player.Setup();
                 _pool.Enqueue(player);
             }
@@ -199,9 +212,12 @@ namespace JeanLF.AudioService
                 gameObject.transform.parent = _poolParent.transform;
 
                 AudioPlayer player = gameObject.AddComponent<AudioPlayer>();
+                player.OnDestroyed = () => HandleFilteredPlayerDestroyed(entry);
                 player.Setup(entry.Filters);
                 _filterPlayers[entry.ConvertedId].Players.Enqueue(player);
             }
         }
+
+       
     }
 }

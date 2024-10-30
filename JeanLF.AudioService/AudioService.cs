@@ -165,11 +165,13 @@ namespace JeanLF.AudioService
 
         public void FadeGroup(GroupId groupId, float to, float duration)
         {
+            throw new NotImplementedException();
             _audioGroups[groupId].FadeGroup(to, duration);
         }
 
         public void FadeGroup(GroupId groupId, float from, float to, float duration)
         {
+            throw new NotImplementedException();
             _audioGroups[groupId].FadeGroup(from, to, duration);
         }
 

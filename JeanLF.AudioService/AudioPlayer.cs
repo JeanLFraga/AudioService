@@ -12,7 +12,7 @@ using UnityEngine.Audio;
 namespace JeanLF.AudioService
 {
     [RequireComponent(typeof(AudioSource))]
-    public class AudioPlayer : MonoBehaviour, IDisposable
+    public sealed class AudioPlayer : MonoBehaviour, IDisposable
     {
         public delegate void TempoEvent(int current);
         public event Action<AudioClip> OnTrackChanged;
@@ -25,18 +25,32 @@ namespace JeanLF.AudioService
         private AudioEntry? _currentEntry;
         private Transform _cachedTransform;
 
-        internal Action OnKill;
+        internal Action OnFinished;
+        internal Action OnDestroyed;
 
         public EntryId CurrentId => _currentEntry?.ConvertedId ?? EntryId.Invalid;
 
         public bool IsPaused { get; private set; }
         public bool IsPlaying => _audioSource.isPlaying && !IsPaused;
         internal bool IsActive => _currentEntry.HasValue && _audioSource != null;
+        internal AudioEntry? CurrentEntry => _currentEntry;
 
-        public AudioPlayer Attach(Transform parent)
+        private void OnDestroy()
+        {
+            ReleaseEntryClips();
+
+            if (_audioSource != null)
+            {
+                _audioSource.Stop();
+            }
+            
+            OnDestroyed?.Invoke();
+        }
+
+        public AudioPlayer Attach(Transform parent, Vector3 localPosition = default)
         {
             _cachedTransform.parent = parent;
-            _cachedTransform.localPosition = Vector3.zero;
+            _cachedTransform.localPosition = localPosition;
 
             return this;
         }
@@ -64,14 +78,14 @@ namespace JeanLF.AudioService
 
         public AudioPlayer Fade(float from, float to, float duration)
         {
-            FadeAsync(from, to, duration);
+            FadeAsync(from, to, duration).Forget();
 
             return this;
         }
 
         public AudioPlayer Fade(float to, float duration)
         {
-            FadeAsync(_audioSource.volume, to, duration);
+            FadeAsync(_audioSource.volume, to, duration).Forget();
 
             return this;
         }
@@ -108,16 +122,7 @@ namespace JeanLF.AudioService
 
         public void Dispose()
         {
-            if (_currentEntry.HasValue)
-            {
-                for (int i = 0; i < _currentEntry.Value.Clips.Length; i++)
-                {
-                    if (_currentEntry.Value.Clips[i].Asset != null)
-                    {
-                        _currentEntry.Value.Clips[i].ReleaseAsset();
-                    }
-                }
-            }
+            ReleaseEntryClips();
 
             _cachedTransform.position = Vector3.zero;
             _cachedTransform.parent = null;
@@ -225,7 +230,7 @@ namespace JeanLF.AudioService
             }
 
             _currentEntry = null;
-            OnKill?.Invoke();
+            OnFinished?.Invoke();
         }
 
         internal void Stop()
@@ -336,11 +341,25 @@ namespace JeanLF.AudioService
         {
             float time = 0f;
 
-            while (time <= duration)
+            while (time <= duration && !this.GetCancellationTokenOnDestroy().IsCancellationRequested)
             {
                 time += Time.deltaTime;
                 _audioSource.volume = Mathf.Lerp(from, to, time);
                 await UniTask.NextFrame();
+            }
+        }
+        
+        private void ReleaseEntryClips()
+        {
+            if (_currentEntry.HasValue)
+            {
+                foreach (var clip in _currentEntry.Value.Clips)
+                {
+                    if (clip.Asset != null)
+                    {
+                        clip.ReleaseAsset();
+                    }
+                }
             }
         }
     }

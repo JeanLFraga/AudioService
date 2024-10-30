@@ -34,7 +34,7 @@ namespace JeanLF.AudioService
                 player = _pool.GetPlayer();
             }
 
-            player.Play(entry, playerProperties, _mixerGroup);
+            player.Play(entry, playerProperties, _mixerGroup).Forget();
             _playingAudios.Add(player);
             AwaitFinish(entry, player).Forget();
 
@@ -120,7 +120,7 @@ namespace JeanLF.AudioService
             await player;
             player.Dispose();
             _playingAudios.Remove(player);
-
+            
             if (entry.HasFilters)
             {
                 _pool.ReleaseFilteredPlayer(entry.ConvertedId, player);

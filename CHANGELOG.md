@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.1.1] - 2024-10-30
+- Fix a exception when an Audio Player is destroyed while attached.
+
 ## [1.1.0] - 2024-04-12
 - Add an event for when the AudioPlayer change its track;
 - Add an event for when the AudioPlayer ends its execution;
