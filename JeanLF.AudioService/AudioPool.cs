@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace JeanLF.AudioService
@@ -32,7 +33,7 @@ namespace JeanLF.AudioService
 
             _poolParent = new GameObject("AudioPool")
             {
-                hideFlags = HideFlags.HideAndDontSave,
+                hideFlags = HideFlags.HideAndDontSave
             };
 
             UnityEngine.Object.DontDestroyOnLoad(_poolParent);
@@ -140,6 +141,7 @@ namespace JeanLF.AudioService
                     UnityEngine.Object.DestroyImmediate(player.gameObject);
                 }
 #endif
+                player.OnDestroyed = null;
                 UnityEngine.Object.Destroy(player.gameObject);
             }
 
@@ -154,6 +156,7 @@ namespace JeanLF.AudioService
                         UnityEngine.Object.DestroyImmediate(player.gameObject);
                     }
 #endif
+                    player.OnDestroyed = null;
                     UnityEngine.Object.Destroy(player.gameObject);
                 }
             }
@@ -161,11 +164,19 @@ namespace JeanLF.AudioService
 
         public void HandleFilteredPlayerDestroyed(AudioEntry entry)
         {
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                return;
+            }
             SpawnFilteredPlayer(1, entry);
         }
         
         public void HandlePlayerDestroyed()
         {
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                return;
+            }
             SpawnPlayer(1);
         }
 

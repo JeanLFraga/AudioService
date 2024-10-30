@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.1.2] - 2024-10-30
+- Fix spawning objects for the pool on quit.
+
 ## [1.1.1] - 2024-10-30
 - Fix a exception when an Audio Player is destroyed while attached.
 
