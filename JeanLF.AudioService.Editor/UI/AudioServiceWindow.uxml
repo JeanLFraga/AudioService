@@ -1,6 +1,9 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
-    <Style src="AudioServiceWindow.uss" />
-    <ui:Button text="Save Configuration" display-tooltip-when-elided="true" name="generateButton" style="display: none;" />
+    <Style src="project://database/Packages/com.jeanlfraga.audioservice/JeanLF.AudioService.Editor/UI/AudioServiceWindow.uss?fileID=7433441132597879392&amp;guid=26fbe28bb39902149b43a40e3bf9ff30&amp;type=3#AudioServiceWindow" />
+    <ui:VisualElement style="flex-grow: 0; flex-direction: row;">
+        <ui:Toggle label="Auto Generate" value="true" name="generateToggle" />
+        <ui:Button text="Generate" parse-escape-sequences="true" display-tooltip-when-elided="true" name="generateButton" focusable="false" />
+    </ui:VisualElement>
     <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="scroll">
         <ui:Foldout text="Audio Entries">
             <JeanLF.AudioService.Editor.ReorderableArray name="entries" draggable="true" header="false" add-button="true" removebutton="true" />
