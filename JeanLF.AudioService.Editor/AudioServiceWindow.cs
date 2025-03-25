@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -18,6 +20,10 @@ namespace JeanLF.AudioService.Editor
         private ReorderableArray _entriesList;
         private ReorderableArray _groupList;
         private PropertyField _mixerField;
+        
+        private HashSet<string> _entryNames = new();
+        private HashSet<string> _groupNames = new();
+        private List<string> _cachedStringList = new();
 
         public static void OpenConfigurationWindow(AudioDatabase database)
         {
@@ -95,27 +101,63 @@ namespace JeanLF.AudioService.Editor
 
             arrayProp.serializedObject.ApplyModifiedPropertiesWithoutUndo();
         }
+        
+        private bool HasIdChanges(string arrayPath, string stringPath, HashSet<string> currentIds)
+        {
+            SerializedProperty arrayProp = _audioConfigSerialized.FindProperty(arrayPath);
+
+            for (int i = 0; i < arrayProp.arraySize; i++)
+            {
+                SerializedProperty idProp = arrayProp.GetArrayElementAtIndex(i).FindPropertyRelative(stringPath);
+                if (!currentIds.Contains(idProp.stringValue))
+                {
+                    return true;
+                } 
+            }
+
+            return false;
+        }
 
         private void OnGroupsUpdate()
         {
+            if (!HasIdChanges(AudioDatabase.GroupPropertyPath, AudioGroup.IdPropertyPath, _groupNames))
+            {
+                return;
+            }
+            
             CleanupIdStrings(AudioDatabase.GroupPropertyPath, AudioGroup.IdPropertyPath);
 
-            GenerateEnums();
+            CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
+                nameof(GroupId),
+                _audioDatabase.AudioGroups.Select(x => x.Id).Prepend("Invalid"));
+            
+            AssetDatabase.Refresh();
+            FillHashsetWithEnum(_groupNames, typeof(GroupId));
         }
 
         private void OnEntriesUpdate()
         {
+            if (!HasIdChanges(AudioDatabase.EntriesPropertyPath, AudioEntry.IdPropertyPath, _entryNames))
+            {
+                return;
+            }
+            
             CleanupIdStrings(AudioDatabase.EntriesPropertyPath, AudioEntry.IdPropertyPath);
-
-            GenerateEnums();
+            
+            CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
+                nameof(EntryId),
+                _audioDatabase.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
+            
+            AssetDatabase.Refresh();
+            FillHashsetWithEnum(_entryNames, typeof(EntryId));
         }
 
         private void GenerateEnums()
         {
             bool hasUpdate = false;
             hasUpdate |= CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
-                                  nameof(EntryId),
-                                  _audioDatabase.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
+                nameof(EntryId),
+                _audioDatabase.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
 
             hasUpdate |= CodeWriter.WriteEnum(AudioServiceEditorUtils.GroupFilePath,
                                  nameof(GroupId),
@@ -124,6 +166,17 @@ namespace JeanLF.AudioService.Editor
             if (hasUpdate)
             {
                 AssetDatabase.Refresh();
+                FillHashsetWithEnum(_entryNames, typeof(EntryId));
+                FillHashsetWithEnum(_groupNames, typeof(GroupId));
+            }
+        }
+
+        private void FillHashsetWithEnum(HashSet<string> hashset, Type enumType)
+        {
+            hashset.Clear();
+            foreach (var entry in Enum.GetNames(enumType))
+            {
+                _entryNames.Add(entry);
             }
         }
 
@@ -137,5 +190,6 @@ namespace JeanLF.AudioService.Editor
             string original = text;
             return text.Substring(1).Insert(0, char.ToUpper(original[0]).ToString());
         }
+        
     }
 }

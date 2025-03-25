@@ -67,20 +67,36 @@ namespace JeanLF.AudioService
                 _audioEntries.Add(entries[i].ConvertedId, entries[i]);
             }
         }
-
+        
         public AudioPlayer Play(AudioReference audio, AudioPlayerProperties? overrideProperties = null)
         {
-            return Play(audio.EntryId, audio.GroupId, overrideProperties);
+            if (audio.EntryId == EntryId.Invalid)
+            {
+                throw new InvalidEnumArgumentException("Invalid entry id given.");
+            }
+            
+            AudioEntry entry = _audioEntries[audio.EntryId];
+            GroupId groupId = audio.GroupId == GroupId.Invalid ? entry.DefaultGroupId : audio.GroupId;
+            return Play(audio.EntryId, groupId, overrideProperties);
         }
 
-        public AudioPlayer Play(EntryId entryId, GroupId groupId, AudioPlayerProperties? overrideProperties = null)
+        public AudioPlayer Play(EntryId entryId, GroupId groupId = GroupId.Invalid, AudioPlayerProperties? overrideProperties = null)
         {
-            if (entryId == EntryId.Invalid || groupId == GroupId.Invalid)
+            if (entryId == EntryId.Invalid)
             {
                 throw new InvalidEnumArgumentException();
             }
-
+            
             AudioEntry entry = _audioEntries[entryId];
+            if (groupId == GroupId.Invalid)
+            {
+                if (entry.DefaultGroupId == GroupId.Invalid)
+                {
+                    throw new InvalidEnumArgumentException("Default group id is invalid and no group id is set.");
+                }
+                groupId = entry.DefaultGroupId;
+            }
+
             AudioPlayer player = _audioGroups[groupId].PlayAudio(entry, overrideProperties == null ? entry.AudioProperties : overrideProperties.Value);
             return player;
         }

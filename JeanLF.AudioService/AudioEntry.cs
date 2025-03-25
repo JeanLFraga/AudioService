@@ -15,6 +15,8 @@ namespace JeanLF.AudioService
         internal static readonly string IdPropertyPath = nameof(_id);
         internal static readonly string FilterPropertyName = nameof(_filters);
         internal static readonly string AudioPropertyName = nameof(_audioProperties);
+        internal static readonly string GroupPropertyName = nameof(_groupId);
+        internal static readonly string NotesPropertyName = nameof(_audioNotes);
         internal static readonly string AudioDescriptionName = nameof(_audioDescription);
 #endif
 
@@ -26,10 +28,12 @@ namespace JeanLF.AudioService
         }
 
         [Delayed] [SerializeField] private string _id;
+        [HideInInspector] [SerializeField] private GroupId _groupId;
         [SerializeField] private PlayMode _playMode;
         [SerializeField] private AssetReferenceT<AudioClip>[] _clips;
         [SerializeField] private AudioPlayerProperties _audioProperties;
         [SerializeField] private AudioDescription _audioDescription;
+        [HideInInspector] [SerializeField] private string _audioNotes;
         [HideInInspector] [SerializeReference] private IFilterProperty[] _filters;
         private EntryId _cachedId;
 
@@ -49,6 +53,7 @@ namespace JeanLF.AudioService
                 return _cachedId;
             }
         }
+        public GroupId DefaultGroupId => _groupId;
         public PlayMode Mode => _playMode;
         public AssetReferenceT<AudioClip>[] Clips => _clips;
         public AudioPlayerProperties AudioProperties => _audioProperties;

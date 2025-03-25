@@ -5,6 +5,7 @@ using System.Reflection;
 using JeanLF.AudioService.Filters;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Search;
 using UnityEditor.UIElements;
 using UnityEditorInternal;
 using UnityEngine.UIElements;
@@ -24,10 +25,13 @@ namespace JeanLF.AudioService.Editor
 
         private ReorderableList _list;
         private SerializedProperty _targetProperty;
+        private Vector2 noteScrollPosition;
+        private MethodInfo _textAreaDrawer;
 
         public AudioEntryPropertyDrawer()
         {
             _foldoutNoMargin.margin.left = 0;
+            _textAreaDrawer = typeof(EditorGUI).GetMethod("ScrollableTextAreaInternal", BindingFlags.Static | BindingFlags.NonPublic);
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -37,7 +41,9 @@ namespace JeanLF.AudioService.Editor
             EditorGUI.PropertyField(position, property, label, true); // Draw default
             position.y += EditorGUI.GetPropertyHeight(property) + VerticalSpacing;
 
-            SerializedProperty descriptionProperty = property.FindPropertyRelative(AudioEntry.AudioDescriptionName);
+            SerializedProperty noteProperty = property.FindPropertyRelative(AudioEntry.NotesPropertyName);
+
+            SerializedProperty groupProperty = property.FindPropertyRelative(AudioEntry.GroupPropertyName);
 
             SerializedProperty listProperty = property.FindPropertyRelative(AudioEntry.FilterPropertyName);
 
@@ -55,24 +61,50 @@ namespace JeanLF.AudioService.Editor
             if (property.isExpanded)
             {
                 using EditorGUI.IndentLevelScope scope = new EditorGUI.IndentLevelScope();
-                EditorGUI.BeginChangeCheck();
-                listProperty.isExpanded =
-                    EditorGUI.Foldout(GetPropertyRect(position), listProperty.isExpanded, "Filters",true);
+                
+                DrawNoteField(position, noteProperty);
 
-                if (EditorGUI.EndChangeCheck())
-                {
-                    _list.GetHeight();
-                }
-
-                position.y += DefaultControlHeight;
-
-                if (listProperty.isExpanded)
-                {
-                    _list.DoList(EditorGUI.IndentedRect(position));
-                }
+                DrawFilters(position, listProperty);
             }
 
             EditorGUI.EndProperty();
+        }
+
+        private void DrawFilters(Rect position, SerializedProperty listProperty)
+        {
+            EditorGUI.BeginChangeCheck();
+            listProperty.isExpanded =
+                EditorGUI.Foldout(EditorGUI.IndentedRect(GetPropertyRect(position)), listProperty.isExpanded, "Filters",true);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                _list.GetHeight();
+            }
+
+            position.y += DefaultControlHeight;
+
+            if (listProperty.isExpanded)
+            {
+                using EditorGUI.IndentLevelScope scopeFilter = new EditorGUI.IndentLevelScope();
+                _list.DoList(EditorGUI.IndentedRect(position));
+            }
+        }
+
+        private void DrawNoteField(Rect position, SerializedProperty noteProperty)
+        {
+            var labelRect = EditorGUI.IndentedRect(GetPropertyRect(position, SingleLineHeight * 3f));
+            Rect noteRect = EditorGUI.PrefixLabel(labelRect, new GUIContent("Notes"));
+            noteRect.xMin -= EditorGUIUtility.labelWidth * 0.7f;
+            object[] parameters = {
+                noteRect, 
+                noteProperty.stringValue, 
+                noteScrollPosition, 
+                EditorStyles.textArea            
+            };
+            object textAreaResult = _textAreaDrawer.Invoke(null, parameters);
+            noteScrollPosition = (Vector2) (parameters[2]);
+            noteProperty.stringValue = textAreaResult.ToString();
+            position.y += SingleLineHeight * 3f + VerticalSpacing;
         }
 
 
@@ -177,6 +209,7 @@ namespace JeanLF.AudioService.Editor
             float defaultSize = EditorGUI.GetPropertyHeight(property);
             SerializedProperty listProperty = property.FindPropertyRelative(AudioEntry.FilterPropertyName);
             float filterFoldout = DefaultControlHeight;
+            float textArea = SingleLineHeight * 3f + VerticalSpacing;
             _reorderableLists.TryGetValue(property.propertyPath, out _list);
 
             if (_list == null)
@@ -190,9 +223,10 @@ namespace JeanLF.AudioService.Editor
             {
                 filterFoldout = 0;
                 list = 0;
+                textArea = 0;
             }
 
-            return defaultSize + filterFoldout + list;
+            return defaultSize + textArea + filterFoldout + list;
         }
 
         private Rect GetPropertyRect(Rect rect, float? height = null)

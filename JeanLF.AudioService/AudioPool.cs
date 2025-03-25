@@ -27,6 +27,8 @@ namespace JeanLF.AudioService
         private bool ShouldExpand => _settings.ExpandCount > 0;
         private bool ShouldShrink => _settings.ShrinkCount > 0;
 
+        private bool _isQuitting = false;
+
         public AudioPool(AudioDatabase database, PoolSettings poolSettings)
         {
             _settings = poolSettings;
@@ -50,6 +52,13 @@ namespace JeanLF.AudioService
                     SpawnFilteredPlayer(_settings.FilterPlayerPoolCount, audioEntries[i]);
                 }
             }
+
+            Application.quitting += ApplicationQuitting;
+        }
+
+        private void ApplicationQuitting()
+        {
+            _isQuitting = true;
         }
 
         public AudioPlayer GetPlayer()
@@ -86,8 +95,12 @@ namespace JeanLF.AudioService
 
         public void ReleasePlayer(AudioPlayer player)
         {
+            if (_isQuitting)
+            {
+                return;
+            }
+            
             player.transform.parent = _poolParent.transform;
-            UnityEngine.Object.DontDestroyOnLoad(player.gameObject);
             _pool.Enqueue(player);
 
             if (_pool.Count >= _settings.PlayerPoolCount + _settings.ShrinkCount && ShouldShrink)
@@ -109,8 +122,12 @@ namespace JeanLF.AudioService
 
         public void ReleaseFilteredPlayer(EntryId id, AudioPlayer player)
         {
+            if (_isQuitting)
+            {
+                return;
+            }
+
             player.transform.parent = _poolParent.transform;
-            UnityEngine.Object.DontDestroyOnLoad(player.gameObject);
             _filterPlayers[id].Players.Enqueue(player);
 
             if (_filterPlayers[id].Players.Count >= _settings.FilterPlayerPoolCount + _settings.ShrinkCount && ShouldShrink)
@@ -135,13 +152,13 @@ namespace JeanLF.AudioService
             foreach (AudioPlayer player in _pool)
             {
                 player.Dispose();
+                player.OnDestroyed = null;
 #if UNITY_EDITOR
                 if (!Application.isPlaying)
                 {
                     UnityEngine.Object.DestroyImmediate(player.gameObject);
                 }
 #endif
-                player.OnDestroyed = null;
                 UnityEngine.Object.Destroy(player.gameObject);
             }
 
@@ -150,13 +167,13 @@ namespace JeanLF.AudioService
                 foreach (AudioPlayer player in keyValue.Value.Players)
                 {
                     player.Dispose();
+                    player.OnDestroyed = null;
 #if UNITY_EDITOR
                     if (!Application.isPlaying)
                     {
                         UnityEngine.Object.DestroyImmediate(player.gameObject);
                     }
 #endif
-                    player.OnDestroyed = null;
                     UnityEngine.Object.Destroy(player.gameObject);
                 }
             }
@@ -164,16 +181,16 @@ namespace JeanLF.AudioService
 
         public void HandleFilteredPlayerDestroyed(AudioEntry entry)
         {
-            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+            if (_isQuitting)
             {
                 return;
             }
             SpawnFilteredPlayer(1, entry);
         }
-        
+
         public void HandlePlayerDestroyed()
         {
-            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+            if (_isQuitting)
             {
                 return;
             }
@@ -228,7 +245,5 @@ namespace JeanLF.AudioService
                 _filterPlayers[entry.ConvertedId].Players.Enqueue(player);
             }
         }
-
-       
     }
 }
