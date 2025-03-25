@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -113,6 +114,12 @@ namespace JeanLF.AudioService.Editor
         private void GenerateEnums()
         {
             bool hasUpdate = false;
+
+            if (!Directory.Exists(AudioServiceEditorUtils.GeneratedAssetsPath))
+            {
+                Directory.CreateDirectory(AudioServiceEditorUtils.GeneratedAssetsPath);
+            }
+            
             hasUpdate |= CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
                                   nameof(EntryId),
                                   _audioDatabase.AudioEntries.Select(x => x.Id).Prepend("Invalid"));

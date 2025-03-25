@@ -1,16 +1,18 @@
-using Cysharp.Threading.Tasks;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using UnityEditor;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Audio;
 
 namespace JeanLF.AudioService
 {
     public sealed partial class AudioService : IAudioService
     {
+        public const string RuntimeAssetsPath = "Assets/Plugins/JeanLF.AudioService";
+        private const string SettingsAssetName = "JeanLF_AS_Settings";
+        public const string SettingsAssetPath = RuntimeAssetsPath + "/Resources/" + SettingsAssetName + ".asset";
+        
         private readonly AudioDatabase _database;
         private readonly AudioPool _pool;
         private readonly Dictionary<GroupId, AudioPlayerGroup> _audioGroups = new();
@@ -19,41 +21,32 @@ namespace JeanLF.AudioService
 
         public AudioService()
         {
-            AudioServiceSettings settings = Addressables.LoadAssetAsync<AudioServiceSettings>(AudioServiceSettings.FileName).WaitForCompletion();
+            AudioServiceSettings settings = Resources.Load<AudioServiceSettings>(SettingsAssetName);
             _database = settings.Database;
 
-            if (_database == null)
-            {
-                throw new NullReferenceException(@"Audio Service configuration can't be null.\n
-                You can set the configuration on the service settings in <b>Project Settings/JeanLF/Audio Service</b>");
-            }
-
             _pool = new AudioPool(_database, settings.PoolSettings);
-            IReadOnlyList<AudioGroup> groups = _database.AudioGroups;
-
-            for (int i = 0; i < groups.Count; i++)
-            {
-                _audioGroups.Add(groups[i].ConvertedId, new AudioPlayerGroup(groups[i].Id, groups[i].MixerGroup, _pool));
-            }
-
-            IReadOnlyList<AudioEntry> entries = _database.AudioEntries;
-            for (int i = 0; i < entries.Count; i++)
-            {
-                _audioEntries.Add(entries[i].ConvertedId, entries[i]);
-            }
+            CreateIdCache(settings);
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+#endif
         }
 
         internal AudioService(AudioServiceSettings settings)
         {
             _database = settings.Database;
 
+            _pool = new AudioPool(_database, settings.PoolSettings);
+            CreateIdCache(settings);
+        }
+
+        private void CreateIdCache(AudioServiceSettings settings)
+        {
             if (_database == null)
             {
                 throw new NullReferenceException(@"Audio Service configuration can't be null.\n
                 You can set the configuration on the service settings in <b>Project Settings/JeanLF/Audio Service</b>");
             }
 
-            _pool = new AudioPool(_database, settings.PoolSettings);
             IReadOnlyList<AudioGroup> groups = _database.AudioGroups;
 
             for (int i = 0; i < groups.Count; i++)
@@ -85,6 +78,39 @@ namespace JeanLF.AudioService
             return player;
         }
 
+        public void Resume(AudioReference audio)
+        {
+            Resume(audio.EntryId, audio.GroupId);
+        }
+
+        public void Resume(EntryId entryId, GroupId groupId)
+        {
+            if (entryId == EntryId.Invalid || groupId == GroupId.Invalid)
+            {
+                throw new InvalidEnumArgumentException();
+            }
+
+            _audioGroups[groupId].ResumeAudio(entryId);
+        }
+        
+        public void ResumeGroup(GroupId groupId)
+        {
+            if (groupId == GroupId.Invalid)
+            {
+                throw new InvalidEnumArgumentException();
+            }
+
+            _audioGroups[groupId].Resume();
+        }
+
+        public void ResumeAll()
+        {
+            foreach (KeyValuePair<GroupId, AudioPlayerGroup> keyPair in _audioGroups)
+            {
+                keyPair.Value.Resume();
+            }
+        }
+        
         public void Pause(AudioReference audio)
         {
             Pause(audio.EntryId, audio.GroupId);
@@ -100,21 +126,6 @@ namespace JeanLF.AudioService
             _audioGroups[groupId].PauseAudio(entryId);
         }
 
-        public void Resume(AudioReference audio)
-        {
-            Resume(audio.EntryId, audio.GroupId);
-        }
-
-        public void Resume(EntryId entryId, GroupId groupId)
-        {
-            if (entryId == EntryId.Invalid || groupId == GroupId.Invalid)
-            {
-                throw new InvalidEnumArgumentException();
-            }
-
-            _audioGroups[groupId].ResumeAudio(entryId);
-        }
-
         public void PauseGroup(GroupId groupId)
         {
             if (groupId == GroupId.Invalid)
@@ -122,17 +133,15 @@ namespace JeanLF.AudioService
                 throw new InvalidEnumArgumentException();
             }
 
-            _audioGroups[groupId].PauseAll();
+            _audioGroups[groupId].Pause();
         }
-
-        public void ResumeGroup(GroupId groupId)
+        
+        public void PauseAll()
         {
-            if (groupId == GroupId.Invalid)
+            foreach (KeyValuePair<GroupId, AudioPlayerGroup> keyPair in _audioGroups)
             {
-                throw new InvalidEnumArgumentException();
+                keyPair.Value.Pause();
             }
-
-            _audioGroups[groupId].Resume();
         }
 
         public void Stop(AudioReference audio)
@@ -179,5 +188,26 @@ namespace JeanLF.AudioService
         {
             _pool?.Dispose();
         }
+
+#if UNITY_EDITOR
+        private void OnPlayModeStateChanged(PlayModeStateChange newState)
+        {
+            switch (newState)
+            {
+                case PlayModeStateChange.EnteredPlayMode:
+                    ResumeAll();
+                    break;
+                case PlayModeStateChange.ExitingPlayMode:
+                    Dispose();
+                    break;
+            }
+            
+            if (EditorApplication.isPaused)
+            {
+                PauseAll();
+            } 
+        }
+#endif
+        
     }
 }

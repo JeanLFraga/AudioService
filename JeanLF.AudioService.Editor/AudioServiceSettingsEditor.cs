@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.AddressableAssets;
-using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 namespace JeanLF.AudioService.Editor
 {
@@ -24,30 +22,13 @@ namespace JeanLF.AudioService.Editor
         
         public void OnPreprocessBuild(BuildReport report)
         {
-            AudioServiceSettings settings = GetOrCreateSettings();
-            Debug.Log($"Audio Service - Pre-build step\nGenerating code for {settings.Database}");
-
-            if (settings.Database != null)
-            {
-                if (!CheckOrCreateAddressableEntry(settings))
-                {
-                    Debug.LogError("Audio Service - Missing Addressable settings, Audio service will not work.");
-                    return;
-                }
-                GenerateCode(settings.Database);
-            }
+            Debug.Log($"Audio Service - Pre-build step\nGenerating code for {GetOrCreateSettings().name}");
+            GenerateCodeWithDefaultSettings();
         }
 
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            AudioServiceSettings settings = GetOrCreateSettings();
-
-            if (settings.Database == null)
-            {
-                return;
-            }
-
-            GenerateCode(settings.Database);
+            GenerateCodeWithDefaultSettings();
         }
 
         [SettingsProvider]
@@ -67,43 +48,62 @@ namespace JeanLF.AudioService.Editor
 
         internal static AudioServiceSettings GetOrCreateSettings()
         {
-            AudioServiceSettings settings = AssetDatabase.LoadAssetAtPath<AudioServiceSettings>(AudioServiceEditorUtils.SettingsAssetPath);
+            AudioServiceSettings settings = AssetDatabase.LoadAssetAtPath<AudioServiceSettings>(AudioService.SettingsAssetPath);
 
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<AudioServiceSettings>();
+                Debug.Log("Audio Service - Created new settings asset.");
 
-                Directory.CreateDirectory(Path.GetDirectoryName(AudioServiceEditorUtils.SettingsAssetPath));
-                AssetDatabase.CreateAsset(settings, AudioServiceEditorUtils.SettingsAssetPath);
+                Directory.CreateDirectory(Path.GetDirectoryName(AudioService.SettingsAssetPath) ?? string.Empty);
+                AssetDatabase.CreateAsset(settings, AudioService.SettingsAssetPath);
                 AssetDatabase.SaveAssets();
             }
 
-            CheckOrCreateAddressableEntry(settings);
+            SetPreloadedSettings(settings);
             return settings;
         }
 
-        private static bool CheckOrCreateAddressableEntry(AudioServiceSettings settings)
+        private static void SetPreloadedSettings(AudioServiceSettings settings)
         {
-            if (!AddressableAssetSettingsDefaultObject.SettingsExists)
+            Object[] preloadedAssets = PlayerSettings.GetPreloadedAssets();
+           
+            bool found = false;
+            foreach (Object obj in preloadedAssets)
             {
-                return false;
+                if (obj == settings)
+                {
+                    found = true;
+                    break;
+                }
             }
-            
-            string guid = AssetDatabase.AssetPathToGUID(AudioServiceEditorUtils.SettingsAssetPath);
 
-            if (AddressableAssetSettingsDefaultObject.Settings.FindAssetEntry(guid) != null)
+            if (!found)
             {
-                return true;
+                PlayerSettings.SetPreloadedAssets(preloadedAssets.Append(settings).ToArray());
+            }
+        }
+        
+        [MenuItem(AudioServiceEditorUtils.AssetMenu)]
+        private static void GenerateCodeWithDefaultSettings()
+        {
+            AudioServiceSettings settings = GetOrCreateSettings();
+
+            if (settings.Database == null)
+            {
+                return;
             }
 
-            AddressableAssetEntry entry = AddressableAssetSettingsDefaultObject.Settings.CreateOrMoveEntry(guid, AddressableAssetSettingsDefaultObject.Settings.DefaultGroup);
-            entry.address = AudioServiceSettings.FileName;
-            AddressableAssetSettingsDefaultObject.Settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entry, true);
-            return true;
+            GenerateCode(settings.Database);
         }
 
         internal static void GenerateCode(AudioDatabase database)
         {
+            if (!Directory.Exists(AudioServiceEditorUtils.GeneratedAssetsPath))
+            {
+                Directory.CreateDirectory(AudioServiceEditorUtils.GeneratedAssetsPath);
+            }
+            
             CodeWriter.WriteEnum(AudioServiceEditorUtils.EntriesFilePath,
                                  nameof(EntryId),
                                  database.AudioEntries.Select(x => x.Id).Prepend("Invalid"));
@@ -150,13 +150,6 @@ namespace JeanLF.AudioService.Editor
 
             PropertyField shrinkField = rootElement.Q<PropertyField>("shrinkCount");
             shrinkField.BindProperty(poolProp.FindPropertyRelative(PoolSettings.ShrinkCountName));
-
-            if (!CheckOrCreateAddressableEntry(audioSettings))
-            {
-                var helpBox = new HelpBox("Missing Unity's addressable settings, Audio service needs it to work!\nOpen 'Window/Asset Management/Addressables/Groups' for more info.",
-                    HelpBoxMessageType.Warning);
-                rootElement.Add(helpBox);
-            }
         }
 
         private static void OnConfigChange(ChangeEvent<UnityEngine.Object> evt)

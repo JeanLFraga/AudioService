@@ -63,7 +63,7 @@ namespace JeanLF.AudioService
             }
         }
 
-        internal void PauseAll()
+        internal void Pause()
         {
             foreach (AudioPlayer player in _playingAudios)
             {

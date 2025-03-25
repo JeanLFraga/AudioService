@@ -82,7 +82,7 @@ namespace JeanLF.AudioService.Editor
             {
                 if (_settings == null)
                 {
-                    _settings = AssetDatabase.LoadAssetAtPath<AudioServiceSettings>(AudioServiceEditorUtils.SettingsAssetPath);
+                    _settings = AssetDatabase.LoadAssetAtPath<AudioServiceSettings>(AudioService.SettingsAssetPath);
                 }
 
                 return _settings;
