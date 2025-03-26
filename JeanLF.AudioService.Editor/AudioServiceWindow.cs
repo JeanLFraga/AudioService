@@ -9,6 +9,7 @@ namespace JeanLF.AudioService.Editor
 {
     public class AudioServiceWindow : EditorWindow
     {
+        private const string PrefsAutoGenKey = "JeanLFs.AudioSystem.AutoGen";
         private static readonly Vector2 MinWindowSize = new Vector2(350f, 300);
         private readonly Regex _enumMemberRegex = new Regex("(^[^A-Za-z]+)|([^a-zA-Z0-9])");
 
@@ -18,6 +19,9 @@ namespace JeanLF.AudioService.Editor
         private ReorderableArray _entriesList;
         private ReorderableArray _groupList;
         private PropertyField _mixerField;
+
+        private Toggle _generateToggle;
+        private Button _generateButton;
 
         public static void OpenConfigurationWindow(AudioDatabase database)
         {
@@ -60,6 +64,21 @@ namespace JeanLF.AudioService.Editor
 
             _mixerField = root.Q<PropertyField>("mixer");
 
+            _generateToggle = root.Q<Toggle>("generateToggle");
+            _generateButton = root.Q<Button>("generateButton");
+
+            if (!EditorPrefs.HasKey(PrefsAutoGenKey))
+            {
+                EditorPrefs.SetBool(PrefsAutoGenKey, true);
+            }
+
+            bool autoGenValue = EditorPrefs.GetBool(PrefsAutoGenKey);
+            _generateToggle.value = autoGenValue;
+            _generateToggle.RegisterValueChangedCallback(OnGenToggleUpdate);
+
+            _generateButton.clicked += GenerateEnums;
+            _generateButton.SetEnabled(!autoGenValue);
+
             if (_audioDatabase != null)
             {
                 Initialize(_audioDatabase);
@@ -100,14 +119,27 @@ namespace JeanLF.AudioService.Editor
         {
             CleanupIdStrings(AudioDatabase.GroupPropertyPath, AudioGroup.IdPropertyPath);
 
-            GenerateEnums();
+            if (_generateToggle.value)
+            {
+                GenerateEnums();
+            }
         }
 
         private void OnEntriesUpdate()
         {
             CleanupIdStrings(AudioDatabase.EntriesPropertyPath, AudioEntry.IdPropertyPath);
 
-            GenerateEnums();
+            if (_generateToggle.value)
+            {
+                GenerateEnums();
+            }
+        }
+
+        private void OnGenToggleUpdate(ChangeEvent<bool> changeEvent)
+        {
+            bool toggleValue = changeEvent.newValue;
+            EditorPrefs.SetBool(PrefsAutoGenKey, toggleValue);
+            _generateButton.SetEnabled(!toggleValue);
         }
 
         private void GenerateEnums()

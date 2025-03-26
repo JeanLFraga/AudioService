@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.2.0] - 2025-03-25
+- Add manual generation for the audio service window.
+
 ## [1.1.2] - 2024-10-30
 - Fix spawning objects for the pool on quit.
 
