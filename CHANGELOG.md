@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.2.2] - 2025-03-26
+- Fix editor quitting not stopping playing.
+
 ## [1.2.1] - 2025-03-26
 - Fix compile build compilation error.
 

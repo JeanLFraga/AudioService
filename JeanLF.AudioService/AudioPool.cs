@@ -35,7 +35,7 @@ namespace JeanLF.AudioService
 
             _poolParent = new GameObject("AudioPool")
             {
-                hideFlags = HideFlags.HideAndDontSave
+                hideFlags = HideFlags.HideInHierarchy
             };
 
             UnityEngine.Object.DontDestroyOnLoad(_poolParent);
@@ -154,7 +154,7 @@ namespace JeanLF.AudioService
                 player.Dispose();
                 player.OnDestroyed = null;
 #if UNITY_EDITOR
-                if (!Application.isPlaying)
+                if (EditorApplication.isPlayingOrWillChangePlaymode)
                 {
                     UnityEngine.Object.DestroyImmediate(player.gameObject);
                 }
@@ -169,7 +169,7 @@ namespace JeanLF.AudioService
                     player.Dispose();
                     player.OnDestroyed = null;
 #if UNITY_EDITOR
-                    if (!Application.isPlaying)
+                    if (EditorApplication.isPlayingOrWillChangePlaymode)
                     {
                         UnityEngine.Object.DestroyImmediate(player.gameObject);
                     }
@@ -213,7 +213,7 @@ namespace JeanLF.AudioService
             {
                 GameObject gameObject = new GameObject($"AudioPlayer {i}")
                 {
-                    hideFlags = HideFlags.HideAndDontSave,
+                    hideFlags = HideFlags.HideInHierarchy
                 };
 
                 UnityEngine.Object.DontDestroyOnLoad(gameObject);
@@ -233,7 +233,7 @@ namespace JeanLF.AudioService
             {
                 GameObject gameObject = new GameObject($"FilterAudioPlayer_{entry.Id} {j}")
                 {
-                    hideFlags = HideFlags.HideAndDontSave,
+                    hideFlags = HideFlags.HideInHierarchy
                 };
 
                 UnityEngine.Object.DontDestroyOnLoad(gameObject);

@@ -41,6 +41,14 @@ namespace JeanLF.AudioService
             {
                 _audioEntries.Add(entries[i].ConvertedId, entries[i]);
             }
+            
+            Application.quitting += ApplicationOnQuitting;
+        }
+
+        private void ApplicationOnQuitting()
+        {
+            Application.quitting -= ApplicationOnQuitting;
+            Dispose();
         }
 
         internal AudioService(AudioServiceSettings settings)

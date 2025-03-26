@@ -122,18 +122,18 @@ namespace JeanLF.AudioService
 
         public void Dispose()
         {
-            ReleaseEntryClips();
-
-            _cachedTransform.position = Vector3.zero;
-            _cachedTransform.parent = null;
-            
-            IsPaused = false;
-            _audioSource.Stop();
-            
             OnBar = null;
             OnBeat = null;
             OnEnd = null;
             OnTrackChanged = null;
+            
+            ReleaseEntryClips();
+
+            _cachedTransform.position = Vector3.zero;
+            _cachedTransform.parent = null;
+
+            IsPaused = false;
+            _audioSource.Stop();
         }
 
         internal void Setup()
