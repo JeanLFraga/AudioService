@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [1.2.1] - 2025-03-26
+- Fix compile build compilation error.
+
 ## [1.2.0] - 2025-03-25
 - Add manual generation for the audio service window.
 
