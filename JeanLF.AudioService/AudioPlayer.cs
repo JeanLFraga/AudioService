@@ -24,6 +24,7 @@ namespace JeanLF.AudioService
         private Dictionary<Type, Component> _filters;
         private AudioEntry? _currentEntry;
         private Transform _cachedTransform;
+        private float? _volumeOverride;
 
         internal Action OnFinished;
         internal Action OnDestroyed;
@@ -90,6 +91,14 @@ namespace JeanLF.AudioService
             return this;
         }
 
+        public AudioPlayer SetVolume(float volume)
+        {
+            _volumeOverride = volume;
+            _audioSource.volume = volume;
+            
+            return this;
+        }
+
         public AudioPlayer Pause()
         {
             _audioSource.Pause();
@@ -131,6 +140,7 @@ namespace JeanLF.AudioService
 
             _cachedTransform.position = Vector3.zero;
             _cachedTransform.parent = null;
+            _volumeOverride = null;
 
             IsPaused = false;
             _audioSource.Stop();
@@ -340,11 +350,12 @@ namespace JeanLF.AudioService
         private async UniTaskVoid FadeAsync(float from, float to, float duration)
         {
             float time = 0f;
+            float entryVolume = _volumeOverride ?? _currentEntry!.Value.AudioProperties.Volume;
 
             while (time <= duration && !this.GetCancellationTokenOnDestroy().IsCancellationRequested)
             {
                 time += Time.deltaTime;
-                _audioSource.volume = Mathf.Lerp(from, to, time);
+                _audioSource.volume = Mathf.Lerp(from * entryVolume, to * entryVolume, time);
                 await UniTask.NextFrame();
             }
         }
