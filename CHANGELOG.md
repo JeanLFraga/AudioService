@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [2.0.0] - 2025-03-27
+- Change AudioPlayer Fade to respect the assigned entry volume.
+
 ## [1.2.2] - 2025-03-26
 - Fix editor quitting not stopping playing.
 
