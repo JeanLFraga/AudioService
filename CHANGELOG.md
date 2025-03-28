@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [2.1.0] - 2025-03-27
+- Add the option for overriding Audio Player fade's.
+
 ## [2.0.0] - 2025-03-27
 - Change AudioPlayer Fade to respect the assigned entry volume.
 
