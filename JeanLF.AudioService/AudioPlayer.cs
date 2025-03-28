@@ -1,9 +1,7 @@
 using Cysharp.Threading.Tasks;
 using JeanLF.AudioService.Filters;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -25,6 +23,8 @@ namespace JeanLF.AudioService
         private AudioEntry? _currentEntry;
         private Transform _cachedTransform;
         private float? _volumeOverride;
+        private UniTask? _currentFade;
+        private CancellationTokenSource _fadeCancelToken = new();
 
         internal Action OnFinished;
         internal Action OnDestroyed;
@@ -77,16 +77,27 @@ namespace JeanLF.AudioService
             return this;
         }
 
-        public AudioPlayer Fade(float from, float to, float duration)
+        public AudioPlayer Fade(float to, float duration, bool overrideFade = false)
         {
-            FadeAsync(from, to, duration).Forget();
-
+            Fade(_audioSource.volume, to, duration);
             return this;
         }
-
-        public AudioPlayer Fade(float to, float duration)
+        
+        public AudioPlayer Fade(float from, float to, float duration, bool overrideFade = false)
         {
-            FadeAsync(_audioSource.volume, to, duration).Forget();
+            if (_currentFade.HasValue && !overrideFade)
+            {
+                return this;
+            }
+
+            if(_currentFade.HasValue && overrideFade)
+            {
+                _fadeCancelToken.Cancel();
+                _fadeCancelToken = new CancellationTokenSource();
+                _currentFade = null;
+            }
+
+            _currentFade = FadeAsync(from, to, duration);
 
             return this;
         }
@@ -141,6 +152,9 @@ namespace JeanLF.AudioService
             _cachedTransform.position = Vector3.zero;
             _cachedTransform.parent = null;
             _volumeOverride = null;
+            _currentFade = null;
+            _fadeCancelToken.Cancel();
+            _fadeCancelToken = new CancellationTokenSource();
 
             IsPaused = false;
             _audioSource.Stop();
@@ -347,17 +361,20 @@ namespace JeanLF.AudioService
             return assetReference.Asset as AudioClip;
         }
 
-        private async UniTaskVoid FadeAsync(float from, float to, float duration)
+        private async UniTask FadeAsync(float from, float to, float duration)
         {
+            CancellationToken cancelTokenRef = _fadeCancelToken.Token;
             float time = 0f;
             float entryVolume = _volumeOverride ?? _currentEntry!.Value.AudioProperties.Volume;
 
-            while (time <= duration && !this.GetCancellationTokenOnDestroy().IsCancellationRequested)
+            while (time <= duration && !cancelTokenRef.IsCancellationRequested)
             {
                 time += Time.deltaTime;
-                _audioSource.volume = Mathf.Lerp(from * entryVolume, to * entryVolume, time);
+                _audioSource.volume = Mathf.Lerp(from * entryVolume, to * entryVolume, time / duration);
                 await UniTask.NextFrame();
             }
+
+            _currentFade = null;
         }
         
         private void ReleaseEntryClips()
