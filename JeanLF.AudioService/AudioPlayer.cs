@@ -39,6 +39,7 @@ namespace JeanLF.AudioService
         private void OnDestroy()
         {
             ReleaseEntryClips();
+            _currentEntry = null;
 
             if (_audioSource != null)
             {
@@ -247,7 +248,7 @@ namespace JeanLF.AudioService
                         OnTrackChanged?.Invoke(_audioSource.clip);
                         index = (index + 1) % entry.Clips.Length;
                     }
-                    while (!this.GetCancellationTokenOnDestroy().IsCancellationRequested);
+                    while (this != null && !this.GetCancellationTokenOnDestroy().IsCancellationRequested);
                     OnEnd?.Invoke();
                     break;
                 }

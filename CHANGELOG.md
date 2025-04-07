@@ -1,5 +1,8 @@
 ﻿# Changelog
 
+## [2.1.1] - 2025-04-04
+- Fix an issue where was possible to stop a destroyed audio player raising an exception.
+
 ## [2.1.0] - 2025-03-27
 - Add the option for overriding Audio Player fade's.
 

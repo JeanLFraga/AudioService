@@ -64,7 +64,7 @@ namespace JeanLF.AudioService
             _player = player;
         }
 
-        public bool IsCompleted => !_player.IsActive;
+        public bool IsCompleted => _player == null || !_player.IsActive;
 
         public AudioPlayerAwaiter GetAwaiter()
         {

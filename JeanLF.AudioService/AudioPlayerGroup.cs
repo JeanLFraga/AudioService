@@ -36,6 +36,7 @@ namespace JeanLF.AudioService
 
             player.Play(entry, playerProperties, _mixerGroup).Forget();
             _playingAudios.Add(player);
+            player.OnDestroyed += () => OnPlayerDestroy(player);
             AwaitFinish(entry, player).Forget();
 
             return player;
@@ -118,6 +119,13 @@ namespace JeanLF.AudioService
         private async UniTaskVoid AwaitFinish(AudioEntry entry, AudioPlayer player)
         {
             await player;
+            
+            if (player == null)
+            {
+                //The player has been destroyed, and should not be returned for the pool. 
+                return;
+            }
+            
             player.Dispose();
             _playingAudios.Remove(player);
             
@@ -129,6 +137,11 @@ namespace JeanLF.AudioService
             {
                 _pool.ReleasePlayer(player);
             }
+        }
+
+        private void OnPlayerDestroy(AudioPlayer player)
+        {
+            _playingAudios.Remove(player);
         }
     }
 }

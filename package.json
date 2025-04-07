@@ -3,7 +3,7 @@
   "displayName": "JeanLF Audio Service",
   "description": "Audio Service acts as a manager for your audio playing necessities, with configuration through the Editor for easy access to multi-disciplinary teams",
   "author": "Jean Luca de Fraga",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "documentationUrl": "https://github.com/JeanLFraga/AudioService",
   "changelogUrl": "https://github.com/JeanLFraga/AudioService/blob/main/CHANGELOG.md",
   "licensesUrl": "https://github.com/JeanLFraga/AudioService/blob/main/LICENSE.md",

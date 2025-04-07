@@ -153,12 +153,7 @@ namespace JeanLF.AudioService
             {
                 player.Dispose();
                 player.OnDestroyed = null;
-#if UNITY_EDITOR
-                if (EditorApplication.isPlayingOrWillChangePlaymode)
-                {
-                    UnityEngine.Object.DestroyImmediate(player.gameObject);
-                }
-#endif
+
                 UnityEngine.Object.Destroy(player.gameObject);
             }
 
@@ -168,12 +163,7 @@ namespace JeanLF.AudioService
                 {
                     player.Dispose();
                     player.OnDestroyed = null;
-#if UNITY_EDITOR
-                    if (EditorApplication.isPlayingOrWillChangePlaymode)
-                    {
-                        UnityEngine.Object.DestroyImmediate(player.gameObject);
-                    }
-#endif
+
                     UnityEngine.Object.Destroy(player.gameObject);
                 }
             }
